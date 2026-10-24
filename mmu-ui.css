@@ -1256,58 +1256,462 @@ body.sidebar-collapsed #sidebar {
 }
 
 /* ==========================================================================
-   Responsive Design (Tablet & Mobile Bottom Sheet)
+   Mobile/Tablet-Only Sheet Elements (Hidden on Desktop > 960px)
+   ========================================================================== */
+.sheet-grabber,
+.mobile-persona-wrap,
+.detail-sheet-header {
+  display: none;
+}
+
+/* ==========================================================================
+   Responsive Design: Google Maps-Style 3-Stage Bottom Sheet & Compact HUD
+   (Tablet <= 960px & Mobile <= 600px)
    ========================================================================== */
 @media (max-width: 960px) {
-  :root {
-    --sidebar-w: 330px;
-  }
+  /* 1. Compact Dual-Zone Top Header & Icon-Only HUD */
   #top-left-stack {
-    max-width: calc(100vw - 36px);
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    max-width: none;
+    gap: 6px;
   }
+
+  #brand {
+    padding: 7px 12px;
+    gap: 9px;
+    border-radius: 14px;
+    width: fit-content;
+    max-width: calc(100vw - 20px);
+  }
+
+  .brand-crest {
+    width: 32px;
+    height: 32px;
+    font-size: 17px;
+    border-radius: 9px;
+  }
+
+  .brand-title {
+    font-size: 14.5px;
+  }
+
+  .brand-badge {
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+
+  .brand-sub {
+    display: none;
+  }
+
+  #ticker-pill {
+    padding: 5px 11px;
+    font-size: 12px;
+    max-width: calc(100vw - 54px);
+  }
+
+  /* Compact Icon-Only HUD Toolbar on Top-Right / Second Row */
   #hud-top {
+    top: 10px;
+    right: 10px;
+    left: auto;
+    bottom: auto;
+    gap: 5px;
+    z-index: 32;
+  }
+
+  body.sidebar-collapsed #hud-top {
+    right: 10px;
+  }
+
+  .hud-group {
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .hud-btn {
+    padding: 6px 8px;
+    font-size: 13px;
+    min-width: 34px;
+    min-height: 34px;
+    justify-content: center;
+  }
+
+  .hud-btn .hud-label {
+    display: none;
+  }
+
+  /* Hide desktop floating bottom persona dock (integrated into sheet top instead) */
+  #bottom-dock {
+    display: none !important;
+  }
+
+  /* Hide desktop sidebar title row on mobile/tablet */
+  .sidebar-title-row {
+    display: none;
+  }
+
+  #sidebar-toggle {
     top: auto;
-    bottom: 72px;
+    bottom: 16px;
     right: 16px;
+    width: auto;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-weight: 800;
+    gap: 6px;
+    background: linear-gradient(135deg, var(--mmu-teal), #1b4d89);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  }
+
+  /* 2. 3-Stage Bottom Sheet (#sidebar) */
+  #sidebar {
+    top: auto;
+    left: 8px;
+    right: 8px;
+    bottom: 0;
+    width: auto;
+    height: 45dvh;
+    border-radius: 22px 22px 0 0;
+    border-bottom: none;
+    background: rgba(12, 22, 38, 0.94);
+    box-shadow: 0 -10px 36px rgba(4, 10, 22, 0.55);
+    padding-bottom: env(safe-area-inset-bottom, 6px);
+    transition: height 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.22s ease;
+  }
+
+  /* Stage 1: Peek (微收合看 3D 島，露出 80%+ 3D 畫面) */
+  body[data-sheet-stage="peek"] #sidebar {
+    height: 148px;
+  }
+
+  /* Stage 2: Half (半開導覽，上下對照 3D 與清單) */
+  body[data-sheet-stage="half"] #sidebar {
+    height: 45dvh;
+  }
+
+  /* Stage 3: Full (全螢幕舒適閱讀模式) */
+  body[data-sheet-stage="full"] #sidebar {
+    height: 86dvh;
+  }
+
+  body.sidebar-collapsed #sidebar {
+    transform: translateY(calc(100% + 24px));
+  }
+
+  /* When Building Detail is active on Mobile/Tablet, hide #sidebar behind #detail */
+  body.has-detail #sidebar {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(24px);
+  }
+
+  /* Sheet Grabber & 3-Stage Switcher Header */
+  .sidebar-header {
+    padding: 6px 12px 8px;
+    gap: 7px;
+  }
+
+  .sheet-grabber {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: grab;
+    touch-action: none;
+    padding-top: 2px;
+  }
+
+  .sheet-pill-handle {
+    width: 42px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.32);
+  }
+
+  .sheet-stage-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .sheet-brand-mini {
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .sheet-stage-btns {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(6, 12, 22, 0.6);
+    padding: 3px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .sheet-stage-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 4px 9px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+
+  .sheet-stage-btn.active {
+    background: var(--mmu-gold);
+    color: #0e1d34;
+    box-shadow: 0 2px 6px rgba(245, 184, 65, 0.35);
+  }
+
+  /* Integrated Persona Strip inside Sheet Top */
+  .mobile-persona-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .mobile-persona-bar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1px;
+  }
+  .mobile-persona-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-persona-bar .persona-btn {
+    padding: 5px 11px;
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    flex-shrink: 0;
+  }
+  .mobile-persona-bar .persona-btn.active {
+    background: linear-gradient(135deg, #f5b841 0%, #e69228 100%);
+    color: #101f36;
+    border-color: transparent;
+  }
+
+  .mobile-persona-links {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 3px 2px;
+  }
+  .mobile-persona-links[hidden] {
+    display: none !important;
+  }
+  .mobile-persona-links .persona-quick-link {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 11.5px;
+    padding: 4px 10px;
+  }
+
+  /* Hide scrollable content when in Peek mode so header stays ultra-clean */
+  body[data-sheet-stage="peek"] #sidebar .tab-panel {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* 3. Unified Building Detail Sheet (#detail) on Mobile & Tablet */
+  #detail {
+    left: 8px;
+    right: 8px;
+    bottom: 0;
+    width: auto;
+    height: 48dvh;
+    max-height: 88dvh;
+    border-radius: 22px 22px 0 0;
+    border-bottom: none;
+    background: rgba(12, 22, 38, 0.96);
+    box-shadow: 0 -12px 40px rgba(4, 10, 22, 0.65);
+    padding-bottom: env(safe-area-inset-bottom, 8px);
+    z-index: 50;
+    transition: height 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  body[data-sheet-stage="full"] #detail {
+    height: 86dvh;
+  }
+
+  body[data-sheet-stage="peek"] #detail {
+    height: 210px;
+  }
+
+  .detail-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px 6px;
+    background: rgba(8, 15, 28, 0.75);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .detail-back-btn,
+  .detail-expand-btn {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.09);
+    color: #f8fafc;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 11px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .detail-expand-btn {
+    background: rgba(245, 184, 65, 0.18);
+    border-color: rgba(245, 184, 65, 0.45);
+    color: var(--mmu-gold);
+  }
+
+  /* 4. Enhanced Typography & Touch Targets for Mobile/Tablet Reading */
+  .search-box input {
+    font-size: 16px; /* Prevents iOS Safari auto-zoom on focus */
+    padding: 9px 32px 9px 12px;
+  }
+
+  .tab-btn {
+    font-size: 13px;
+    padding: 8px 6px;
+  }
+
+  .building-card {
+    padding: 11px 12px;
+  }
+
+  .b-name {
+    font-size: 14.5px;
+  }
+
+  .b-who {
+    font-size: 12px;
+  }
+
+  .b-plain {
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  .news-title {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .detail-title {
+    font-size: 17.5px;
+  }
+
+  .detail-plain {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: #f1f5f9;
+  }
+
+  .detail-facts li {
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+
+  .flow-tag {
+    font-size: 12.5px;
+    line-height: 1.5;
+    padding: 10px 12px;
+  }
+
+  /* Full-Screen Reader Mode Typography Boost */
+  body[data-sheet-stage="full"] .detail-title {
+    font-size: 19.5px;
+  }
+
+  body[data-sheet-stage="full"] .detail-plain {
+    font-size: 15.5px;
+    line-height: 1.72;
+  }
+
+  body[data-sheet-stage="full"] .detail-facts li {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .detail-nav-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .detail-official-link {
+    padding: 8px 15px;
+    font-size: 13px;
   }
 }
 
-@media (max-width: 720px) {
-  #sidebar {
-    top: auto;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    width: auto;
-    height: 46dvh;
+/* Narrow Mobile Portrait Adjustments (<= 600px) */
+@media (max-width: 600px) {
+  #top-left-stack {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    gap: 5px;
   }
-  body.sidebar-collapsed #sidebar {
-    transform: translateY(calc(100% + 20px));
-  }
+
+  /* Stack HUD neatly on second row if screen is very narrow */
   #hud-top {
-    top: 120px;
-    bottom: auto;
-    left: 16px;
-    right: auto;
-    justify-content: flex-start;
+    top: 50px;
+    left: 8px;
+    right: 8px;
+    justify-content: space-between;
   }
-  #bottom-dock {
-    left: 10px;
-    right: 10px;
-    bottom: calc(46dvh + 16px);
+
+  #ticker-pill {
+    margin-top: 38px;
+    max-width: calc(100vw - 48px);
   }
-  body.sidebar-collapsed #bottom-dock {
-    bottom: 14px;
-    right: 10px;
+
+  #ticker-next {
+    margin-top: 38px;
   }
-  #detail {
-    left: 10px;
-    right: 10px;
-    width: auto;
-    bottom: 14px;
-    z-index: 50;
+
+  .portal-grid {
+    grid-template-columns: 1fr;
   }
+
   .help-grid {
     grid-template-columns: 1fr;
+  }
+
+  .island-label {
+    padding: 4px 9px;
+    font-size: 11.5px;
+  }
+
+  .item-pin {
+    padding: 3px 8px;
+    font-size: 11px;
   }
 }

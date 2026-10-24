@@ -224,7 +224,7 @@
       <div class="meta">
         <div><strong>專案：</strong> Island (<code>puma.taipei/heart-island</code> 技術分析 &amp; 馬偕醫學大學 3D 互動校園島精簡重製)</div>
         <div><strong>起始時間：</strong> 2026-10-23 20:33</div>
-        <div><strong>最後更新：</strong> 2026-10-24 09:22</div>
+        <div><strong>最後更新：</strong> 2026-10-24 09:52</div>
         <span class="badge">MD + HTML 雙軌同步</span>
         <span class="badge coral">HEART 政策島逆向工程 &amp; 馬偕醫大 3D 校園島原型</span>
       </div>
@@ -296,6 +296,14 @@
             <span class="timestamp">[2026-10-24 09:18 - 09:22]</span>
             用戶指示「也請幫我增加手動上傳的操作步驟」。於第 10 節增補「GitHub 網頁端免安裝手動拖曳上傳」（免敲終端機指令、瀏覽器可視化上傳）與「GitHub Desktop 官方圖形客戶端」兩種手動上傳手冊，並詳細說明多檔案與 <code>vendor/</code> 資料夾拖曳技巧與 GitHub Pages 啟用流程。
           </li>
+          <li>
+            <span class="timestamp">[2026-10-24 09:33 - 09:46]</span>
+            用戶啟動 <code>/grill-me</code> 反映：「目前看起來這個網站比較適合在電腦上瀏覽，手機或平板上的閱讀效果似乎不太方便，有什麼方法可以優化嗎？」。透過 <code>/grill-me</code> 完成 4 大行動版設計決策對齊，並實作 <strong>v2.2 行動裝置與平板全面優化升級</strong>：（1）<strong>Google Maps 式三段底部抽屜</strong>（支援手指上下滑動與一鍵切換 <code>🔽 看 3D 島 148px</code> / <code>⏹️ 半開 45dvh</code> / <code>🔼 全螢幕閱讀 86dvh</code>）；（2）<strong>極簡雙區圖示化頂欄 ＋ 訪客身分列整合至底部抽屜頂端</strong>（消除畫面中央遮擋）；（3）<strong>單一抽屜無縫切換「地標詳情模式」</strong>（附 <code>← 返回目錄</code> 與 <code>🔼 全螢幕閱讀</code> 大字體排版，並將處室分機升級為 <code>tel:0226360303</code> 點擊直接撥號）；（4）<strong>遠近階層式標籤（LOD Labels）＋ 直向螢幕廣角補償與上半部視覺置中偏移</strong>（記錄於下方第 11 節）。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-24 09:49 - 09:52]</span>
+            用戶詢問更新 GitHub 時需上傳哪些檔案、以及 GitHub 是否需要重新進行任何設定。詳盡說明：更新時僅需覆蓋修改之檔案（<code>index.html</code>、<code>mmu-ui.css</code>、<code>mmu-app.js</code>、<code>PROJECT_LOG.*</code>），且 GitHub Pages 擁有<strong>自動持續整合部署機制（Auto-Deployment）</strong>，完全<strong>不需</strong>重新做任何設定，推送後 30～60 秒即自動同步至公開網址。
+          </li>
         </ul>
       </section>
 
@@ -319,7 +327,8 @@
           <li><span class="check">✔</span> <div>透過 <code>/grill-me</code> 與用戶完成 5 大設計決策對齊，產出《馬偕醫學大學 3D 互動校園島精簡重製規格書》（<a href="MMU_REMAKE_SPEC.md">MMU_REMAKE_SPEC.md</a> &amp; <a href="MMU_REMAKE_SPEC.html">MMU_REMAKE_SPEC.html</a>，記錄於下方第 7 節）。</div></li>
           <li><span class="check">✔</span> <div>完成「馬偕醫學大學 3D 互動校園島」可執行網站原型（<a href="index.html">index.html</a>、<code>mmu-ui.css</code>、<code>mmu-data.js</code>、<code>mmu-app.js</code>、<code>vendor/three-bundle.js</code>），支援本機 <code>file://</code> 直接雙擊開啟零 CORS 錯誤（記錄於下方第 8 節）。</div></li>
           <li><span class="check">✔</span> <div>落實用戶回饋升級：雙語資料映射修復（消除 <code>[object Object]</code>）、27 座微縮地標擬真精細化、12 座跨島大橋與幹道網絡、三芝茭白筍特色雕塑與水梯田、師生戶外沙發與休憩家具組。</div></li>
-          <li><span class="check">✔</span> <div>完成專案 GitHub 規格化與開源配置（<code>.gitignore</code>、<code>README.md</code>、Git 本地倉庫初始化），並提供 GitHub Pages 免費 CDN 一鍵上線部署手冊（記錄於下方第 10 節）。</div></li>
+          <li><span class="check">✔</span> <div>完成專案 GitHub 規格化與開源配置（<code>.gitignore</code>、<code>README.md</code>、Git 本地倉庫初始化），並提供 GitHub Pages 免費 CDN 一鍵上線與網頁手動拖曳上傳手冊（記錄於下方第 10 節）。</div></li>
+          <li><span class="check">✔</span> <div>完成 v2.2 手機與平板行動閱讀優化：實作 Google Maps 式三段底部抽屜、極簡圖示頂欄、整合式訪客身分列、單一抽屜無縫詳情閱讀模式、直向廣角補償與遠近階層式標籤（記錄於下方第 11 節）。</div></li>
         </ul>
       </section>
 
@@ -727,6 +736,50 @@ git push -u origin main</code></pre>
           <li><strong>Q2：GitHub Pages 出現 404 Not Found？</strong><br>GitHub Pages 部署通常需要 1 到 2 分鐘排程發布。如果剛按下 Save，請稍等約 60 秒後再重新整理，看到「Your site is live at...」的綠色勾勾提示後再開啟。</li>
           <li><strong>Q3：未來如果要更新島上的建築或最新消息怎麼辦？</strong><br><strong>指令方式</strong>：本地修改 <code>mmu-data.js</code> 或 <code>mmu-app.js</code> 後，執行 <code>git commit -am "update"</code> 與 <code>git push</code>。<br><strong>網頁方式</strong>：直接在 GitHub 網頁上找到 <code>mmu-data.js</code>，點擊右上角鉛筆圖示（Edit this file）直接修改文字或新聞，按下 Commit changes，GitHub Pages 就會在 1 分鐘內自動更新全網！</li>
         </ul>
+      </section>
+
+      <section>
+        <h2>11. 手機與平板行動閱讀與觸控體驗全面優化 (<code>/grill-me</code> Mobile &amp; Tablet UX Optimization — v2.2)</h2>
+
+        <h3>11.1 診斷出的行動端痛點</h3>
+        <ol>
+          <li><strong>多層浮動面板遮擋：</strong>原版手機畫面同時出現頂部品牌卡、8 顆文字按鈕列、中間懸浮 4 大訪客身分列與底部固定 46% 側欄，遮蔽超過 80% 的 3D 畫布與標籤。</li>
+          <li><strong>直向螢幕（Portrait）視角裁切與目標被遮擋：</strong>手機直向比例導致水平視角過窄，左右兩側島嶼被裁切；點擊建築時鏡頭中心落在螢幕正中央，剛好被下半部面板擋住。</li>
+          <li><strong>雙層卡片疊床架屋與閱讀空間狹小：</strong>點擊地標時 <code>#detail</code> 浮動卡直接疊在 <code>#sidebar</code> 之上，且無法拉高至全螢幕閱讀長文。</li>
+        </ol>
+
+        <h3>11.2 <code>/grill-me</code> 四大行動版設計決策與實作成果</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>決策項目</th>
+              <th>對齊方案</th>
+              <th>實作技術細節 (<code>index.html</code>, <code>mmu-ui.css</code>, <code>mmu-app.js</code>)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Q1. 主版面與抽屜架構</strong></td>
+              <td><strong>Google Maps 式三段底部抽屜 (<code>peek</code> / <code>half</code> / <code>full</code>)</strong></td>
+              <td>實作 <code>setSheetStage()</code> 與 <code>bindSheetDragGesture()</code>，支援<strong>手指上下滑動拉柄（Touch Swipe）</strong>與三顆快速切換鈕：<code>🔽 看 3D 島 (148px)</code>、<code>⏹️ 半開 (45dvh)</code>、<code>🔼 全螢幕閱讀 (86dvh)</code>。</td>
+            </tr>
+            <tr>
+              <td><strong>Q2. 頂欄與訪客身分列收納</strong></td>
+              <td><strong>極簡圖示化頂欄 ＋ 訪客身分列整合至抽屜頂部</strong></td>
+              <td>手機／平板自動隱藏按鈕冗長文字（<code>.hud-label</code>），化為單排精簡圖示膠囊；並將「4 大訪客身分列」移入底部抽屜頂端（<code>#mobile-persona-bar</code>），徹底清空 3D 畫面中央遮擋。</td>
+            </tr>
+            <tr>
+              <td><strong>Q3. 地標詳情閱讀模式</strong></td>
+              <td><strong>單一抽屜無縫切換 ＋ 全螢幕大字閱讀模式</strong></td>
+              <td>點擊建築或馬偕博士時，<code>body.has-detail</code> 自動以單一底部抽屜切換為「地標詳情檢視」，附 <strong><code>← 返回目錄</code></strong> 與 <strong><code>🔼 全螢幕閱讀</code></strong> 按鈕；全螢幕模式下標題與內文字級放大、行距加寬，並將處室分機升級為 <code>tel:0226360303</code> 手機點擊直接撥號。</td>
+            </tr>
+            <tr>
+              <td><strong>Q4. 3D 標籤與直向鏡頭適配</strong></td>
+              <td><strong>遠近階層式標籤（LOD）＋ 直向廣角與上半部視覺置中</strong></td>
+              <td><code>getOverviewPose()</code> 自動依直向長寬比拉遠全景距離（7 島完整入鏡）；<code>selectBuilding()</code> 與 <code>flyToIsland()</code> 自動將鏡頭中心偏移至<strong>上半部 55% 可視區</strong>；<code>clipLabels()</code> 在手機全景僅顯示 7 大島名，拉近或選島時才顯示該島建築標籤。</td>
+            </tr>
+          </tbody>
+        </table>
       </section>
     </main>
 

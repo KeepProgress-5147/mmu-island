@@ -1388,7 +1388,7 @@
       const obj = new THREE.CSS2DObject(el);
       obj.position.set(0, 3.8, 0);
       entry.group.add(obj);
-      trackedLabels.push({ el, obj, priority: 5, w: 88, h: 24, hidden: false, type: 'building', building: b });
+      trackedLabels.push({ el, obj, priority: 5, w: 88, h: 24, hidden: false, type: 'building', building: b, islandId: isl.id });
     });
   });
 
@@ -1406,15 +1406,26 @@
   trackedLabels.push({ el: mackayPinEl, obj: mackayPinObj, priority: 20, w: 150, h: 28, hidden: false, type: 'mackay' });
 
   const projVec = new THREE.Vector3();
+  const worldPosVec = new THREE.Vector3();
   let selectedBuildingId = null;
+
+  function isMobileViewport() {
+    return window.innerWidth <= 960;
+  }
 
   function clipLabels() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const camDist = camera.position.distanceTo(controls.target);
+    const mobileMode = isMobileViewport();
+    const hasDetail = document.body.classList.contains('has-detail');
 
     const uiRects = [];
-    ['sidebar', 'detail', 'top-left-stack', 'hud-top', 'persona-bar'].forEach((id) => {
+    const activeUiIds = mobileMode
+      ? [hasDetail ? 'detail' : 'sidebar', 'top-left-stack', 'hud-top']
+      : ['sidebar', 'detail', 'top-left-stack', 'hud-top', 'persona-bar'];
+
+    activeUiIds.forEach((id) => {
       const dom = document.getElementById(id);
       if (dom && !dom.hidden) {
         const r = dom.getBoundingClientRect();
@@ -1435,14 +1446,29 @@
         lbl.el.classList.toggle('selected', Boolean(isSel));
       }
 
-      if (lbl.type === 'building' && camDist > 75 && !isSel) {
-        lbl.el.classList.add('label-culled');
-        lbl.hidden = true;
-        return;
+      lbl.obj.getWorldPosition(worldPosVec);
+
+      // Hierarchical LOD Labels:
+      // On Mobile/Tablet, overview only shows the 7 Island Labels + Dr. MacKay;
+      // Building pins appear when an island is selected, a building is selected, or the camera zooms in close.
+      if (lbl.type === 'building' && !isSel) {
+        if (mobileMode) {
+          const isFilteredIsland = activeIslandFilter !== 'all' && lbl.islandId === activeIslandFilter;
+          const distToTarget = worldPosVec.distanceTo(controls.target);
+          const isZoomedIn = camDist < 52 && distToTarget < 20;
+          if (!isFilteredIsland && !isZoomedIn) {
+            lbl.el.classList.add('label-culled');
+            lbl.hidden = true;
+            return;
+          }
+        } else if (camDist > 75) {
+          lbl.el.classList.add('label-culled');
+          lbl.hidden = true;
+          return;
+        }
       }
 
-      lbl.obj.getWorldPosition(projVec);
-      projVec.project(camera);
+      projVec.copy(worldPosVec).project(camera);
 
       if (projVec.z > 1) {
         lbl.el.classList.add('label-culled');
@@ -1483,11 +1509,53 @@
   }
 
   /* ------------------------------------------------------------------------
-     10. Camera Smooth Fly-To Animation & Selection Logic
+     10. Camera Smooth Fly-To Animation, Portrait Aspect & 3-Stage Sheet Logic
      ------------------------------------------------------------------------ */
   let camAnim = null;
   let activeIslandFilter = 'all';
   let activePersona = 'all';
+  let currentSheetStage = 'half'; // 'peek' | 'half' | 'full'
+
+  function setSheetStage(stage) {
+    currentSheetStage = stage;
+    document.body.dataset.sheetStage = stage;
+    document.querySelectorAll('.sheet-stage-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.sheetStage === stage);
+    });
+    const expandBtn = document.getElementById('detail-expand-toggle');
+    if (expandBtn) {
+      if (stage === 'full') {
+        expandBtn.textContent = currentLang === 'en' ? '🔽 Half View (3D)' : '🔽 半開看 3D';
+      } else {
+        expandBtn.textContent = currentLang === 'en' ? '🔼 Full Reader' : '🔼 全螢幕閱讀';
+      }
+    }
+  }
+  setSheetStage('half');
+
+  function getOverviewPose() {
+    const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+    if (isMobileViewport()) {
+      const portraitScale = aspect < 1 ? Math.min(1.56, Math.max(1.06, 0.88 / Math.max(0.45, aspect))) : 1.04;
+      const zShift = currentSheetStage === 'peek' ? 3.2 : 8.2;
+      return {
+        target: new THREE.Vector3(0, 0, zShift),
+        offset: new THREE.Vector3(0, 48 * portraitScale, 72 * portraitScale)
+      };
+    }
+    return {
+      target: new THREE.Vector3(0, 0, 2),
+      offset: new THREE.Vector3(0, 48, 72)
+    };
+  }
+
+  // Apply initial portrait-compensated camera pose if opened on mobile/tablet
+  {
+    const initPose = getOverviewPose();
+    controls.target.copy(initPose.target);
+    camera.position.copy(initPose.target).add(initPose.offset);
+    controls.update();
+  }
 
   function animateCameraTo(targetPos, camOffset, duration = 750) {
     camAnim = {
@@ -1502,27 +1570,55 @@
 
   function flyToOverview() {
     selectedBuildingId = null;
+    activeIslandFilter = 'all';
     updateSelectionUI();
-    animateCameraTo(new THREE.Vector3(0, 0, 2), new THREE.Vector3(0, 48, 72), 850);
+    renderSidebarIslandsTab();
+    const pose = getOverviewPose();
+    animateCameraTo(pose.target, pose.offset, 850);
   }
 
   function flyToIsland(islandId) {
     const entry = world.islandMap.get(islandId);
     if (!entry) return;
-    animateCameraTo(entry.worldPos.clone().setY(1.2), new THREE.Vector3(0, 22, 30), 750);
+    const target = entry.worldPos.clone().setY(1.2);
+    const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+    if (isMobileViewport()) {
+      if (currentSheetStage === 'full') setSheetStage('half');
+      const pScale = aspect < 1 ? Math.min(1.34, Math.max(1.0, 0.86 / Math.max(0.46, aspect))) : 1.0;
+      target.z += currentSheetStage === 'peek' ? 1.5 : 5.2;
+      target.y -= currentSheetStage === 'peek' ? 0.2 : 1.1;
+      animateCameraTo(target, new THREE.Vector3(0, 22 * pScale, 30 * pScale), 750);
+    } else {
+      animateCameraTo(target, new THREE.Vector3(0, 22, 30), 750);
+    }
   }
 
   function selectBuilding(buildingId) {
     const entry = world.buildingMap.get(buildingId);
     if (!entry) return;
     selectedBuildingId = buildingId;
-    animateCameraTo(entry.worldPos.clone().setY(1.5), new THREE.Vector3(5.2, 8.8, 12.8), 700);
+    const target = entry.worldPos.clone().setY(1.5);
+    if (isMobileViewport()) {
+      if (currentSheetStage === 'peek') setSheetStage('half');
+      // Shift target downward/southward so 3D building centers in the upper 52% visible screen above the sheet
+      target.y -= 1.05;
+      target.z += 2.65;
+      animateCameraTo(target, new THREE.Vector3(5.6, 9.6, 14.2), 700);
+    } else {
+      animateCameraTo(target, new THREE.Vector3(5.2, 8.8, 12.8), 700);
+    }
     updateSelectionUI();
     renderDetailCard(entry.data, entry.island);
   }
 
   function openMackayEasterEgg() {
+    selectedBuildingId = 'MACKAY';
     const pos = people.mackayGroup.position.clone();
+    if (isMobileViewport()) {
+      if (currentSheetStage === 'peek') setSheetStage('half');
+      pos.y -= 0.7;
+      pos.z += 1.8;
+    }
     animateCameraTo(pos, new THREE.Vector3(3.5, 5.5, 8.5), 700);
     const mackayStory = {
       id: 'MACKAY',
@@ -1547,6 +1643,7 @@
       flows: ['F3', 'F5'],
       url: 'https://www.mmu.edu.tw/xmdoc/cont?xsmsid=0O268593124160844054'
     };
+    updateSelectionUI();
     renderDetailCard(mackayStory, DATA.islands[3]);
   }
 
@@ -1557,6 +1654,7 @@
     document.querySelectorAll('.building-card').forEach((card) => {
       card.classList.toggle('selected', card.dataset.id === selectedBuildingId);
     });
+    document.body.classList.toggle('has-detail', Boolean(selectedBuildingId));
     if (!selectedBuildingId) {
       document.getElementById('detail').hidden = true;
     }
@@ -1755,13 +1853,15 @@
 
     html += `<div class="section-heading" style="margin-top:12px">🏛️ ${currentLang === 'en' ? 'Administrative Offices (Main: 02-2636-0303)' : '行政處室與分機總覽 (總機 02-2636-0303)'}</div>`;
     DATA.offices.forEach((o) => {
+      const extNum = (o.ext || '').replace(/\D/g, '');
+      const telHref = extNum ? `tel:0226360303,${extNum}` : 'tel:0226360303';
       html += `
         <div class="office-card">
           <div class="office-main">
             <div class="office-name">${L(o)}</div>
           </div>
           <div class="office-actions">
-            <span class="office-ext">${o.ext}</span>
+            <a class="office-ext" href="${telHref}" title="點擊直接撥打分機" style="text-decoration:none;">📞 ${o.ext}</a>
             <a class="office-link" href="${o.url}" target="_blank" rel="noopener">${currentLang === 'en' ? 'Visit ↗' : '專頁 ↗'}</a>
           </div>
         </div>
@@ -1773,7 +1873,9 @@
 
   function renderPersonaBar() {
     const barEl = document.getElementById('persona-bar');
-    barEl.innerHTML = DATA.personas.map((p) => {
+    const mobileBarEl = document.getElementById('mobile-persona-bar');
+
+    const buttonsHtml = DATA.personas.map((p) => {
       const icon = PERSONA_ICONS[p.id] || '🧭';
       return `
         <button class="persona-btn ${activePersona === p.id ? 'active' : ''}" data-persona="${p.id}">
@@ -1782,26 +1884,42 @@
       `;
     }).join('');
 
-    barEl.querySelectorAll('.persona-btn').forEach((btn) => {
+    barEl.innerHTML = buttonsHtml;
+    if (mobileBarEl) mobileBarEl.innerHTML = buttonsHtml;
+
+    const pObj = DATA.personas.find((x) => x.id === activePersona);
+    const linksStrip = document.getElementById('persona-links');
+    const mobileLinksStrip = document.getElementById('mobile-persona-links');
+
+    if (pObj && pObj.quickLinks && pObj.quickLinks.length && activePersona !== 'all') {
+      const icon = PERSONA_ICONS[pObj.id] || '🧭';
+      const linksHtml = `
+        <span class="persona-links-label">${icon} ${L(pObj.name)}：</span>
+        ${pObj.quickLinks.map((ql) => `<a class="persona-quick-link" href="${ql.url}" target="_blank" rel="noopener">${L(ql)} ↗</a>`).join('')}
+      `;
+      linksStrip.hidden = false;
+      linksStrip.innerHTML = linksHtml;
+      if (mobileLinksStrip) {
+        mobileLinksStrip.hidden = false;
+        mobileLinksStrip.innerHTML = linksHtml;
+      }
+    } else {
+      linksStrip.hidden = true;
+      if (mobileLinksStrip) mobileLinksStrip.hidden = true;
+    }
+
+    document.querySelectorAll('#persona-bar .persona-btn, #mobile-persona-bar .persona-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         activePersona = btn.dataset.persona;
-        const pObj = DATA.personas.find((x) => x.id === activePersona);
+        const selectedPersonaObj = DATA.personas.find((x) => x.id === activePersona);
 
         world.islandMap.forEach((entry, islId) => {
-          const isMatch = activePersona !== 'all' && pObj && pObj.islands.includes(islId);
+          const isMatch = activePersona !== 'all' && selectedPersonaObj && selectedPersonaObj.islands.includes(islId);
           entry.personaRing.opacity = isMatch ? 0.88 : 0.0;
         });
 
-        const linksStrip = document.getElementById('persona-links');
-        if (pObj && pObj.quickLinks && pObj.quickLinks.length && activePersona !== 'all') {
-          const icon = PERSONA_ICONS[pObj.id] || '🧭';
-          linksStrip.hidden = false;
-          linksStrip.innerHTML = `
-            <span class="persona-links-label">${icon} ${L(pObj.name)}：</span>
-            ${pObj.quickLinks.map((ql) => `<a class="persona-quick-link" href="${ql.url}" target="_blank" rel="noopener">${L(ql)} ↗</a>`).join('')}
-          `;
-        } else {
-          linksStrip.hidden = true;
+        if (isMobileViewport() && currentSheetStage === 'full') {
+          setSheetStage('half');
         }
         renderPersonaBar();
       });
@@ -1868,7 +1986,12 @@
 
   document.getElementById('btn-lang').addEventListener('click', () => {
     currentLang = currentLang === 'zh' ? 'en' : 'zh';
-    document.getElementById('btn-lang').textContent = currentLang === 'zh' ? 'EN / 中文' : '中文 / EN';
+    const langBtnText = document.getElementById('btn-lang-text');
+    if (langBtnText) {
+      langBtnText.innerHTML = currentLang === 'zh'
+        ? 'EN<span class="hud-label"> / 中文</span>'
+        : '中<span class="hud-label"> / EN</span>';
+    }
     document.querySelector('.brand-title').textContent = L(DATA.meta.schoolName);
     document.querySelector('.brand-sub').textContent = L(DATA.meta.motto);
     trackedLabels.forEach((lbl) => {
@@ -1878,6 +2001,7 @@
         lbl.el.textContent = currentLang === 'en' ? L(lbl.building.name).split('(')[0].trim() : (lbl.building.sign || L(lbl.building.name));
       }
     });
+    setSheetStage(currentSheetStage);
     updateTicker();
     renderSidebarIslandsTab();
     renderSidebarNewsTab();
@@ -1889,7 +2013,7 @@
     }
   });
 
-  // Sidebar Tabs
+  // Sidebar Tabs (auto-raises sheet from peek to half on mobile when tapped)
   document.querySelectorAll('.tab-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach((b) => {
@@ -1900,8 +2024,51 @@
       document.querySelectorAll('.tab-panel').forEach((p) => {
         p.hidden = p.id !== `panel-${targetTab}`;
       });
+      if (isMobileViewport() && currentSheetStage === 'peek') {
+        setSheetStage('half');
+      }
     });
   });
+
+  // 3-Stage Bottom Sheet Buttons & Touch Swipe Gestures
+  document.querySelectorAll('.sheet-stage-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setSheetStage(btn.dataset.sheetStage);
+    });
+  });
+
+  function bindSheetDragGesture(grabberEl, isDetailHeader = false) {
+    if (!grabberEl) return;
+    let startY = null;
+    grabberEl.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button')) return;
+      startY = e.clientY;
+    });
+    window.addEventListener('pointerup', (e) => {
+      if (startY === null) return;
+      const dy = e.clientY - startY;
+      startY = null;
+      if (Math.abs(dy) < 28) return;
+      const stages = ['peek', 'half', 'full'];
+      const curIdx = stages.indexOf(currentSheetStage);
+      if (dy < -28) {
+        // Swiped up -> expand
+        setSheetStage(stages[Math.min(stages.length - 1, curIdx + 1)]);
+      } else if (dy > 28) {
+        // Swiped down -> collapse
+        if (isDetailHeader && currentSheetStage === 'peek') {
+          selectedBuildingId = null;
+          updateSelectionUI();
+          setSheetStage('half');
+        } else {
+          setSheetStage(stages[Math.max(0, curIdx - 1)]);
+        }
+      }
+    });
+  }
+  bindSheetDragGesture(document.getElementById('sheet-grabber'), false);
+  bindSheetDragGesture(document.getElementById('detail-sheet-grabber'), true);
 
   // Collapse / Expand Sidebar
   document.getElementById('sidebar-collapse').addEventListener('click', () => {
@@ -1909,6 +2076,9 @@
   });
   document.getElementById('sidebar-toggle').addEventListener('click', () => {
     document.body.classList.remove('sidebar-collapsed');
+    if (isMobileViewport() && currentSheetStage === 'peek') {
+      setSheetStage('half');
+    }
   });
 
   // Search Box
@@ -1919,11 +2089,24 @@
     renderSidebarIslandsTab();
   });
 
-  // Detail Card Navigation & Close
-  document.getElementById('detail-close').addEventListener('click', () => {
+  // Detail Card Navigation, Back to Directory & Full-Screen Reader Toggle
+  function closeDetailCard() {
     selectedBuildingId = null;
     updateSelectionUI();
-  });
+  }
+  document.getElementById('detail-close').addEventListener('click', closeDetailCard);
+
+  const detailBackBtn = document.getElementById('detail-back');
+  if (detailBackBtn) {
+    detailBackBtn.addEventListener('click', closeDetailCard);
+  }
+
+  const detailExpandBtn = document.getElementById('detail-expand-toggle');
+  if (detailExpandBtn) {
+    detailExpandBtn.addEventListener('click', () => {
+      setSheetStage(currentSheetStage === 'full' ? 'half' : 'full');
+    });
+  }
 
   function stepBuilding(delta) {
     const idx = allBuildingsFlat.findIndex((item) => item.b.id === selectedBuildingId);

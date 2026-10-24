@@ -44,32 +44,52 @@
   <!-- 右上角 HUD 控制列：四時段光影切換 + 馬偕博士彩蛋 + 全景/語言/說明 -->
   <nav id="hud-top" aria-label="場景光影與視角控制">
     <div class="hud-group" role="group" aria-label="三芝山海四時段光影切換">
-      <button type="button" class="hud-btn" data-time="dawn" title="大屯山晨曦 (06:30)">🌅 清晨</button>
-      <button type="button" class="hud-btn active" data-time="day" title="三芝晴朗白天 (12:00)">☀️ 白天</button>
-      <button type="button" class="hud-btn" data-time="dusk" title="三芝海景夕陽 (17:45)">🌇 三芝夕陽</button>
-      <button type="button" class="hud-btn" data-time="night" title="北海岸星空與校園燈火 (21:00)">🌙 星空</button>
+      <button type="button" class="hud-btn" data-time="dawn" title="大屯山晨曦 (06:30)">🌅<span class="hud-label"> 清晨</span></button>
+      <button type="button" class="hud-btn active" data-time="day" title="三芝晴朗白天 (12:00)">☀️<span class="hud-label"> 白天</span></button>
+      <button type="button" class="hud-btn" data-time="dusk" title="三芝海景夕陽 (17:45)">🌇<span class="hud-label"> 三芝夕陽</span></button>
+      <button type="button" class="hud-btn" data-time="night" title="北海岸星空與校園燈火 (21:00)">🌙<span class="hud-label"> 星空</span></button>
     </div>
 
     <div class="hud-group" role="group" aria-label="快速導覽與彩蛋">
-      <button type="button" id="btn-mackay" class="hud-btn mackay-btn" title="尋找在校園巡禮的馬偕博士彩蛋角色">🎩 尋找馬偕博士</button>
-      <button type="button" id="btn-overview" class="hud-btn" title="回到全校 7 島鳥瞰視角">🗺️ 全景</button>
-      <button type="button" id="btn-lang" class="hud-btn" title="中英文雙語切換">EN / 中文</button>
+      <button type="button" id="btn-mackay" class="hud-btn mackay-btn" title="尋找在校園巡禮的馬偕博士彩蛋角色">🎩<span class="hud-label"> 尋找馬偕博士</span></button>
+      <button type="button" id="btn-overview" class="hud-btn" title="回到全校 7 島鳥瞰視角">🗺️<span class="hud-label"> 全景</span></button>
+      <button type="button" id="btn-lang" class="hud-btn" title="中英文雙語切換"><span id="btn-lang-text">EN<span class="hud-label"> / 中文</span></span></button>
       <button type="button" id="btn-help" class="hud-btn" title="操作說明與規格架構" aria-label="操作說明">❓</button>
     </div>
   </nav>
 
   <!-- 側欄收合時的展開按鈕 -->
-  <button id="sidebar-toggle" type="button" title="展開校園資訊面板" aria-label="展開校園資訊面板">☰</button>
+  <button id="sidebar-toggle" type="button" title="展開校園資訊面板" aria-label="展開校園資訊面板">🧭 導覽目錄</button>
 
-  <!-- 右側三頁籤整合資訊面板 (#sidebar) -->
+  <!-- 右側三頁籤整合資訊面板 (#sidebar，手機/平板自動轉為 Google Maps 式三段底部抽屜) -->
   <aside id="sidebar" aria-label="馬偕醫學大學校園導覽與校務資訊">
     <div class="sidebar-header">
+      <!-- 行動版／平板版：三段式抽屜手勢拉柄與快速切換列 -->
+      <div id="sheet-grabber" class="sheet-grabber" aria-label="行動版抽屜高度控制">
+        <div class="sheet-pill-handle" aria-hidden="true"></div>
+        <div class="sheet-stage-row">
+          <span class="sheet-brand-mini">🧭 校園導覽與資訊中心</span>
+          <div class="sheet-stage-btns" role="group" aria-label="切換閱讀高度">
+            <button type="button" class="sheet-stage-btn" data-sheet-stage="peek" title="微收合以全視野瀏覽 3D 校園島">🔽 看 3D 島</button>
+            <button type="button" class="sheet-stage-btn active" data-sheet-stage="half" title="半開模式：同時對照 3D 與清單">⏹️ 半開</button>
+            <button type="button" class="sheet-stage-btn" data-sheet-stage="full" title="展開全螢幕舒適閱讀文字">🔼 全螢幕閱讀</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 桌機版標題列 -->
       <div class="sidebar-title-row">
         <div class="sidebar-title">
           <span>🧭 校園資訊中心</span>
           <a href="./MMU_REMAKE_SPEC.html" target="_blank" style="font-size:11px;color:var(--mmu-gold);text-decoration:none;font-weight:600;">[查看重製規格書 ↗]</a>
         </div>
         <button id="sidebar-collapse" class="sidebar-collapse-btn" type="button" title="收合側邊面板">收合 ▸</button>
+      </div>
+
+      <!-- 行動版／平板版整合式 4 大訪客身分切換列 (不遮擋 3D 畫面中央) -->
+      <div id="mobile-persona-wrap" class="mobile-persona-wrap">
+        <div id="mobile-persona-bar" class="mobile-persona-bar" role="group" aria-label="訪客身分快速切換"></div>
+        <div id="mobile-persona-links" class="mobile-persona-links" hidden></div>
       </div>
 
       <div class="sidebar-tabs" role="tablist" aria-label="資訊分類頁籤">
@@ -105,8 +125,15 @@
     </section>
   </aside>
 
-  <!-- 左下角建築詳情浮動卡片 (#detail) -->
+  <!-- 左下角建築詳情浮動卡片 (#detail，手機/平板自動整合為單一底部抽屜詳情模式) -->
   <article id="detail" aria-live="polite" hidden>
+    <!-- 行動版／平板版專屬：抽屜頂部返回目錄與全螢幕閱讀切換列 -->
+    <div id="detail-sheet-grabber" class="detail-sheet-header">
+      <button id="detail-back" class="detail-back-btn" type="button" title="返回校園導覽目錄">← 返回目錄</button>
+      <div class="sheet-pill-handle" aria-hidden="true"></div>
+      <button id="detail-expand-toggle" class="detail-expand-btn" type="button" title="切換全螢幕大字閱讀或半開看 3D">🔼 全螢幕閱讀</button>
+    </div>
+
     <div class="detail-top">
       <div id="detail-preview" aria-hidden="true"></div>
       <div class="detail-headings">
