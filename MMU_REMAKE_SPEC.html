@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>馬偕醫學大學 (mmu.edu.tw)「3D 互動校園島」精簡重製專屬規格書 (v1.0)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-inner: #0f172a;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --maroon: #9b2c2c;
+      --coral: #e06d53;
+      --border: #334155;
+      --tag-bg: #1e3a8a;
+      --tag-text: #93c5fd;
+      --accent: #10b981;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      line-height: 1.75;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2.5rem 1.25rem;
+    }
+    .container { max-width: 1040px; margin: 0 auto; }
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .eyebrow {
+      color: var(--coral);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+    h1 {
+      margin: 0 0 0.75rem 0;
+      color: var(--primary);
+      font-size: 2.1rem;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      align-items: center;
+    }
+    .badge {
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .badge.coral {
+      background: rgba(224, 109, 83, 0.2);
+      color: #fba888;
+      border: 1px solid rgba(224, 109, 83, 0.4);
+    }
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--coral);
+      color: #fff;
+      font-weight: 700;
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .cta-btn:hover { opacity: 0.92; }
+    section {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 1.85rem;
+      margin-bottom: 1.85rem;
+      box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.25);
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 1.42rem;
+      color: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.65rem;
+      margin-bottom: 1.25rem;
+    }
+    h3 {
+      color: var(--primary);
+      font-size: 1.15rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.6rem;
+    }
+    h4 {
+      color: #fba888;
+      font-size: 1.02rem;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+    ul, ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+    li { margin-bottom: 0.45rem; }
+    code {
+      background: #090d16;
+      padding: 0.18rem 0.45rem;
+      border-radius: 5px;
+      color: #38bdf8;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 0.88em;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 1.2rem;
+      margin-top: 1rem;
+    }
+    .box {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      background: var(--card-inner);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      background: #162032;
+      color: var(--primary);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: none; }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="eyebrow">MACKAY MEDICAL UNIVERSITY · 3D INTERACTIVE CAMPUS ISLAND SPEC</div>
+      <h1>馬偕醫學大學官網（<code>mmu.edu.tw</code>）「3D 互動校園島」精簡重製專屬規格書</h1>
+      <div class="meta">
+        <div><strong>版本：</strong> v1.0 (2026-10-23)</div>
+        <div><strong>目標網站：</strong> <a href="https://www.mmu.edu.tw/" target="_blank">https://www.mmu.edu.tw/</a></div>
+        <span class="badge">7 座核心六角島 · 27 座微縮地標</span>
+        <span class="badge coral">三芝依山面海 × 馬偕博士彩蛋</span>
+        <a class="cta-btn" href="index.html">▶ 開啟 3D 互動校園島原型網站 (index.html)</a>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <h2>1. 現有網站診斷與精簡重製四大決策 (Executive Summary)</h2>
+        <p>馬偕醫學大學現行官網為傳統多頁式 CMS 結構，首頁包含大圖輪播、三欄文字新聞、10 張圖片磚與 20 個快速連結。為突顯<strong>「三芝依山面海的優美立體校園」</strong>與<strong>「醫學 × 護理 × 厚生健康 × 馬偕紀念醫院 × 偏鄉 USR 的跨域生態系」</strong>，經 <code>/grill-me</code> 需求訪談確認採行以下精簡重製規格：</p>
+        <table>
+          <thead>
+            <tr>
+              <th>設計決策維度</th>
+              <th>核定精簡重製方案</th>
+              <th>精簡效益與優勢</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. 島嶼規模與定位</strong></td>
+              <td><strong>7 座核心六角島綜合入口架構</strong>（涵蓋 3 大學院、全人/馬偕精神、山海生活/宿舍、行政/數位校務、招生/醫院實習/USR，共 27 座微縮建築）</td>
+              <td>由原版 14 島 94 建築濃縮為 <strong>7 島 27 建築</strong>，開發與維護成本降低 70%，同時兼具官網首頁與互動校園導覽功能。</td>
+            </tr>
+            <tr>
+              <td><strong>2. 3D 動態與特效</strong></td>
+              <td>保留 <strong>「三芝背山面海地形 + 四段光影切換」</strong>、<strong>「6 條跨島連結光管」</strong>、<strong>「Q 版師生與馬偕博士彩蛋角色巡迴」</strong></td>
+              <td>移除複雜的紙娃娃試衣間 (<code>heart-me.js</code>) 與城市日誌 LIVE 事件流，程式碼大幅輕量化且聚焦校園特色。</td>
+            </tr>
+            <tr>
+              <td><strong>3. 篩選與時段控制</strong></td>
+              <td>底部改為 <strong>「受眾身分快速導覽（全校總覽／考生與家長／在校學生／教職員與校友）」</strong>；頂部設 <strong>「清晨／白天／三芝夕陽／星空」</strong></td>
+              <td>點選身分即自動高亮對應島嶼並浮現專屬快速入口（如招生網、Open Day、Portal、Moodle、電子公文），解決大學入口網核心痛點。</td>
+            </tr>
+            <tr>
+              <td><strong>4. 資訊整合與版面</strong></td>
+              <td>滿版 <code>100dvh</code> 3D 互動舞台 + 右側面板 <strong>「三頁籤（校園島嶼 ／ 最新消息 ／ 常用系統與處室）」</strong> + 左上角 <strong>「焦點快訊膠囊」</strong></td>
+              <td>完整收納 4 大類最新消息、13 個行政處室與 20 個校務系統連結，維持 AA 等級無障礙語意化檢索。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>2. 七大核心六邊形島嶼與 27 座微縮地標配置表</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>島嶼編號與名稱</th>
+              <th>六角座標 <code>(q, r)</code></th>
+              <th>地面紋理</th>
+              <th>微縮地標建築（共 27 座）</th>
+              <th>對應官網單位與真實連結</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>01 醫學院島</strong><br><small>College of Medicine</small></td>
+              <td><code>(0, 0)</code><br>核心中央</td>
+              <td>花崗岩廣場<br><code>granite</code></td>
+              <td>① 醫學系暨臨床醫學館<br>② 醫學檢驗暨再生醫學中心<br>③ 視光學系視覺科學館<br>④ 生物醫學研究所</td>
+              <td>醫學系 (<code>medicine.mmu.edu.tw</code>)<br>醫檢暨再生醫學系 (<code>lab-reg-med.mmu.edu.tw</code>)<br>視光學系 (<code>optometry.mmu.edu.tw</code>)<br>生醫所 (<code>biomedical.mmu.edu.tw</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>02 護理學院島</strong><br><small>College of Nursing</small></td>
+              <td><code>(1, 0)</code><br>東側</td>
+              <td>柔光暖墊<br><code>softpad</code></td>
+              <td>① 護理學系大樓（學士／碩班／二技）<br>② 高擬真臨床技能模擬中心 (OSCE)<br>③ 社區健康與長者照護實作站</td>
+              <td>護理學院 (<code>cnursing.mmu.edu.tw</code>)<br>護理學系 (<code>nursing.mmu.edu.tw</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>03 厚生健康學院島</strong><br><small>Health &amp; Welfare</small></td>
+              <td><code>(0, 1)</code><br>東南面海</td>
+              <td>療癒草坪<br><code>garden</code></td>
+              <td>① 聽力暨語言治療學系館<br>② 長期照護研究所<br>③ 高齡福祉科技研究所<br>④ 老化感官體驗實驗室</td>
+              <td>聽語系 (<code>aud-slp.mmu.edu.tw</code>)<br>長照所 (<code>ltc.mmu.edu.tw</code>)<br>高齡福祉科技所 (<code>gw-tech-sci.mmu.edu.tw</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>04 全人與馬偕精神島</strong><br><small>MacKay Spirit</small></td>
+              <td><code>(-1, 1)</code><br>西南面海</td>
+              <td>紅磚人文庭院<br><code>terracotta</code></td>
+              <td>① 馬偕精神禮拜堂（焚而不燬）<br>② 全人教育中心<br>③ 數位校史館暨馬偕故事館<br>④ 治校理念與董事會紀念碑</td>
+              <td>全人教育中心 (<code>holistic.mmu.edu.tw</code>)<br>數位校史館 (<code>zone.mmu.edu.tw/MMCHistory/</code>)<br>馬偕精神四大故事、董事會</td>
+            </tr>
+            <tr>
+              <td><strong>05 山海生活與宿舍島</strong><br><small>Campus Life &amp; Dorms</small></td>
+              <td><code>(-1, 0)</code><br>西側</td>
+              <td>校園跑道綠地<br><code>schoolyard</code></td>
+              <td>① 家庭式優質學生宿舍<br>② 圖書館暨馬偕共學園<br>③ 多功能活動中心與運動場<br>④ 三芝校園交通接駁總站</td>
+              <td>家庭式宿舍專頁、圖書館 (<code>lib.mmu.edu.tw</code>)、馬偕共學園、交通路線圖與公車時刻表</td>
+            </tr>
+            <tr>
+              <td><strong>06 行政與數位校務島</strong><br><small>Administration</small></td>
+              <td><code>(0, -1)</code><br>西北靠山</td>
+              <td>現代石板大道<br><code>street</code></td>
+              <td>① 第一、二教研行政大樓（校長／秘書／研發）<br>② 教務與學生事務中心（含校安專線）<br>③ 總務與永續校園中心（CSR／財務／法規）<br>④ 數位校務雲端中樞（Portal／Moodle／公文）</td>
+              <td>13 個行政處室整合入口、<code>portal.mmu.edu.tw</code>、<code>moodle.mmu.edu.tw</code>、電子公文、馬偕雲</td>
+            </tr>
+            <tr>
+              <td><strong>07 招生、醫療與國際USR島</strong><br><small>Admissions, MMH &amp; USR</small></td>
+              <td><code>(1, -1)</code><br>東北山海交界</td>
+              <td>海濱木棧道<br><code>boardwalk</code></td>
+              <td>① 招生資訊中心暨 OPEN DAY 廣場<br>② 馬偕紀念醫院臨床實習基地<br>③ USR 偏鄉衛教與 SDGs 永續基地<br>④ 國際醫療交流碼頭（台蒙／台美實習）</td>
+              <td>招生資訊網 (<code>admissions.mmu.edu.tw</code>)、新生專區、馬偕紀念醫院 (<code>mmh.org.tw</code>)、USR 辦公室、SDGs 專區</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>3. 跨島協作流（Flows）與馬偕博士彩蛋角色</h2>
+        <div class="grid-2">
+          <div class="box">
+            <h4>6 條跨島動態協作光管與 Q 版師生</h4>
+            <ul>
+              <li><strong><code>F1</code> 臨床實習與教學醫院線：</strong><code>01 醫學院</code> &amp; <code>02 護理學院</code> ➔ <code>07 馬偕紀念醫院基地</code>（醫護學生手持聽診器與病歷前往臨床實習）。</li>
+              <li><strong><code>F2</code> 高齡長照與偏鄉 USR 衛教線：</strong><code>03 厚生健康學院</code> ➔ <code>07 USR 偏鄉基地</code>（聽語、長照與視光師生深入三芝、台東、恆春、烏來社區衛教）。</li>
+              <li><strong><code>F3</code> 馬偕精神與全人博雅教育線：</strong><code>04 全人與馬偕精神島</code> ➔ <code>01 / 02 / 03 三大學院</code>（「寧願燒盡，不願銹壞」精神貫穿醫學人文教育）。</li>
+              <li><strong><code>F4</code> 醫師科學家與福祉科技研發線：</strong><code>01 生醫/醫檢</code> ↔ <code>03 高齡福祉科技</code>（AI 生醫與高齡感官實驗室跨域創新）。</li>
+              <li><strong><code>F5</code> 國際醫療與跨文化交流線：</strong><code>01 醫學院</code> &amp; <code>05 校園生活</code> ➔ <code>07 國際交流碼頭</code>（蒙古實習、台蒙科學院 MOU、台美學生文化交流營）。</li>
+              <li><strong><code>F6</code> 新生入學與溫馨住宿陪伴線：</strong><code>07 招生專區</code> ➔ <code>05 家庭式宿舍與接駁站</code> ↔ <code>06 教務與學務中心</code>。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h4>✦ 彩蛋代表人物：馬偕博士 (Dr. George Leslie MacKay)</h4>
+            <ul>
+              <li><strong>3D 角色造型：</strong>身穿 19 世紀深色西裝禮服、蓄著經典濃密黑長鬍鬚、頭戴紳士禮帽、手持醫療箱與聖經。</li>
+              <li><strong>巡迴互動：</strong>沿著 01～07 號島嶼步道與拱橋巡迴，每到一島即停下轉向鏡頭揮手，頭頂顯示 <code>✦ 馬偕博士 · 巡禮中</code>。</li>
+              <li><strong>專屬故事卡：</strong>點擊馬偕博士即飛近特寫，展示「寧願燒盡，不願銹壞」精神語錄，並提供官網四大經典故事（摩西的故事、馬偕的故事、馬偕紀念醫院的故事、我們的故事）直連入口。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>4. 介面佈局、受眾分流與無障礙設計</h2>
+        <ul>
+          <li><strong>頂部三芝山海四段光影：</strong><code>🌅 清晨 (06:30 大屯山嵐)</code>、<code>☀️ 白天 (12:00 蔚藍山海)</code>、<code>🌇 三芝夕陽 (17:45 著名金橘海景落日)</code>、<code>🌙 星空 (21:00 家庭式宿舍暖窗與星空)</code>。</li>
+          <li><strong>底部四大受眾身分快速導覽：</strong>一鍵切換 <code>全校總覽</code>、<code>🎓 考生與家長</code>、<code>📚 在校學生</code>、<code>🏛️ 教職員與校友</code>，自動在 3D 地圖高亮對應島嶼並於底部展開該身分的常用系統按鈕列。</li>
+          <li><strong>右側三頁籤無障礙側邊欄：</strong>整合 <code>① 校園島嶼與系所導覽</code>、<code>② 最新消息（焦點／綜合／藝文／學生）</code>、<code>③ 常用系統與 13 行政處室分機表</code>，並支援即時關鍵字檢索、鍵盤方向鍵操作與 <code>prefers-reduced-motion</code> 無障礙規範。</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      馬偕醫學大學 3D 互動校園島精簡重製規格書 · Antigravity Pair Programming
+    </footer>
+  </div>
+</body>
+</html>

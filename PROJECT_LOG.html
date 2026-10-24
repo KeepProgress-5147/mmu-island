@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>專案執行與討論紀錄 - Island (puma.taipei/heart-island 技術分析)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-inner: #0f172a;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --coral: #db6a41;
+      --border: #334155;
+      --tag-bg: #1e3a8a;
+      --tag-text: #93c5fd;
+      --accent: #10b981;
+      --warning: #f59e0b;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      line-height: 1.7;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2.5rem 1.25rem;
+    }
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      color: var(--primary);
+      font-size: 2.1rem;
+      letter-spacing: -0.02em;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      align-items: center;
+    }
+    .badge {
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .badge.coral {
+      background: rgba(219, 106, 65, 0.2);
+      color: #fba888;
+      border: 1px solid rgba(219, 106, 65, 0.4);
+    }
+    section {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 1.75rem;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.25);
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 1.4rem;
+      color: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.65rem;
+      margin-bottom: 1.25rem;
+    }
+    h3 {
+      color: var(--primary);
+      font-size: 1.15rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.6rem;
+    }
+    h4 {
+      color: #fba888;
+      font-size: 1.05rem;
+      margin-top: 1.25rem;
+      margin-bottom: 0.4rem;
+    }
+    p {
+      margin: 0.6rem 0;
+    }
+    ul, ol {
+      margin: 0.5rem 0;
+      padding-left: 1.5rem;
+    }
+    li {
+      margin-bottom: 0.45rem;
+    }
+    .task-list {
+      list-style: none;
+      padding-left: 0;
+    }
+    .task-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      margin-bottom: 0.6rem;
+    }
+    .check {
+      color: var(--accent);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    code {
+      background: #090d16;
+      padding: 0.18rem 0.45rem;
+      border-radius: 5px;
+      color: #38bdf8;
+      font-family: Consolas, Monaco, "Courier New", monospace;
+      font-size: 0.88em;
+      border: 1px solid #1e293b;
+    }
+    .timestamp {
+      color: var(--primary);
+      font-weight: 700;
+      font-family: monospace;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+    .feature-card {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    .feature-card h4 {
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .num-pill {
+      background: var(--coral);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.92rem;
+      background: var(--card-inner);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: #162032;
+      color: var(--primary);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .arch-box {
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    @media (max-width: 640px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>專案執行與討論紀錄 (Project Log)</h1>
+      <div class="meta">
+        <div><strong>專案：</strong> Island (<code>puma.taipei/heart-island</code> 技術分析 &amp; 馬偕醫學大學 3D 互動校園島精簡重製)</div>
+        <div><strong>起始時間：</strong> 2026-10-23 20:33</div>
+        <div><strong>最後更新：</strong> 2026-10-24 09:22</div>
+        <span class="badge">MD + HTML 雙軌同步</span>
+        <span class="badge coral">HEART 政策島逆向工程 &amp; 馬偕醫大 3D 校園島原型</span>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <h2>1. 專案規範與設定 (Project Guidelines)</h2>
+        <ul>
+          <li><strong>記錄要求：</strong>專案進行期間的所有討論歷程、決策細節、具體執行步驟與各階段交付成果，持續同步更新於專案資料夾。</li>
+          <li><strong>逾時保護機制：</strong>若網站分析超過 5 分鐘無法取得內容或遭遇錯誤，自動中止分析流程。</li>
+          <li><strong>檔案格式：</strong>
+            <ul>
+              <li><code>PROJECT_LOG.md</code>：Markdown 格式，適合版本控管與純文字檢視。</li>
+              <li><code>PROJECT_LOG.html</code>：視覺化 HTML 格式，適合直接以瀏覽器開啟閱讀。</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>2. 討論與決策歷程 (Discussion &amp; Decisions)</h2>
+        <ul>
+          <li>
+            <span class="timestamp">[2026-10-23 20:33]</span>
+            用戶提出記錄規範：需以 <code>.md</code> 與 <code>.html</code> 同步記錄討論、執行與成果。已建立基礎檔案與結構範本。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-23 20:34]</span>
+            用戶提供網址 <a href="https://puma.taipei/heart-island" target="_blank">https://puma.taipei/heart-island</a>，要求分析網站所運用的技術並提供完整說明。初次使用 PowerShell <code>Invoke-WebRequest</code> 進入背景任務等待逾時。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-23 21:48]</span>
+            用戶補充「超過 5 分鐘無法分析或遇錯即自動中止」條件。隨即改用原生 <code>curl.exe -s -L --max-time 15</code> 搭配嚴格超時控制，於 <strong>6 秒內</strong> 成功取回 HTML、HTTP Headers 與全套 13 個 ES Module 原始碼及 JSON 資料檔，完成 100% 原始碼級別深度技術解析。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-23 22:07]</span>
+            用戶要求將分析內容提煉並撰寫成一份「建議的規格書」，作為未來設計同類型網站的參考範本。已產出獨立雙格式規格書範本（<code>WEBSITE_SPEC_TEMPLATE.md</code> 與 <code>WEBSITE_SPEC_TEMPLATE.html</code>），並同步更新至本專案紀錄檔。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-23 22:24]</span>
+            用戶啟動 <code>/grill-me</code> 互動訪談模式，提供目標網站 <a href="https://www.mmu.edu.tw/" target="_blank">https://www.mmu.edu.tw/</a>（馬偕醫學大學官網），希望參考前述規格架構進行「精簡重製（Simplified Remake）」，並要求先分析現有網站並提出具體重製建議。已完成 <code>mmu.edu.tw</code> 首頁、學術單位、行政單位與校園導覽圖之抓取與結構分析，並啟動逐步決策訪談。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-23 22:35]</span>
+            透過 <code>/grill-me</code> 完成五大設計決策樹對齊：（1）採 <strong>7 座六角島完整校務入口版</strong>（共 27 座地標）；（2）保留<strong>三芝山海地形 + 四時段光影（含三芝夕陽）+ 6 條跨島協作線 + 馬偕博士（Dr. MacKay）彩蛋角色</strong>，移除複雜紙娃娃試衣間；（3）底部改為 <strong>4 大訪客身分快速切換</strong>，頂部提供四時段光影與馬偕博士尋訪按鈕；（4）右側採<strong>三頁籤整合面板</strong>（校園島嶼／最新消息／常用系統與處室）搭配左上角即時焦點輪播膠囊；（5）同時交付<strong>專屬重製規格書（MD + HTML）</strong>與<strong>可執行之 3D 互動校園島網站原型</strong>。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-23 22:55]</span>
+            完成《馬偕醫學大學 3D 互動校園島精簡重製規格書》（<a href="MMU_REMAKE_SPEC.md">MMU_REMAKE_SPEC.md</a> &amp; <a href="MMU_REMAKE_SPEC.html">MMU_REMAKE_SPEC.html</a>）以及可直接執行之 3D 互動校園島原型（<a href="index.html">index.html</a>、<code>mmu-ui.css</code>、<code>mmu-data.js</code>、<code>mmu-app.js</code>、<code>vendor/three-bundle.js</code>），並通過 <code>node --check</code> 語法驗證。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-23 23:13]</span>
+            用戶指示「先記錄起來，明天繼續看」。已將今日所有分析報告、規格書範本、馬偕醫學大學專屬重製規格書與 3D 互動校園島原型之當前進度與明日續看快速指南完整封存記錄於本檔案第 9 節。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-24 08:13 - 08:24]</span>
+            用戶附上畫面截圖回饋兩項優化需求：（1）修正畫面中出現 <code>[object Object]</code> 與 <code>undefined</code> 之資料映射問題並精簡文字呈現；（2）將 27 座建築製作得更擬真精細並拉開島上配置。已完成 <code>mmu-app.js</code> v2.0 升級：導入雙語正規化函式 <code>L(val)</code> 與 <code>islCode(isl)</code>（經測試 288 個文字節點 100% 正常對應，0 錯誤）、將正規化建築座標乘上 <code>BUILDING_SPREAD = 9.0</code> 並鋪設中央廣場放射狀花崗岩步道、移除重複疊影的 3D 屋頂招牌，並為全部 27 座建築加入多層樓立面玻璃窗格、轉角壁柱、一樓玻璃門與雨遮、屋頂女兒牆與冷卻機組、哥德式禮拜堂扶壁、牛津學堂尖塔、DNA 雙螺旋雕塑、地壺球賽道及擬真救護車／接駁車。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-24 08:59 - 09:04]</span>
+            用戶提出三項三芝在地特色與校園空間體驗強化需求，已全數實作於 <code>mmu-app.js</code>：（1）<strong>新增 12 座跨島景觀大橋與島內連接幹道系統</strong>（含雙石造海底橋墩、微拱柏油路面與金色中線、雙側石柱安全護欄與路燈；中央 6 座主橋加裝鋼拱桁架 Arch Truss，並讓 Q 版師生直接行走於橋面）；（2）<strong>新增三芝特產「茭白筍（美人腿）」主題造景裝飾</strong>（以潔白飽滿收尖筍肉＋半剝開翠綠筍殼與修長葉片建模，於每島中央廣場設置「三芝美人腿」水池花台雕塑座 <code>addWaterBambooSculpture()</code>，並於南北綠地設置「三芝水梯田茭白筍生態造景畦」<code>addWaterBambooPatch()</code>）；（3）<strong>新增各島師生休憩座椅與戶外家具</strong>（含木構藤架涼亭與 L 型軟墊沙發區 <code>addPergolaLounge()</code>、露天遮陽傘咖啡圓桌四椅組 <code>addCafeParasolSet()</code>、草地野餐共學木桌椅 <code>addPicnicTable()</code> 與帶扶手靠背之廣場木長椅）。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-24 09:10 - 09:15]</span>
+            用戶提出「我想將這個專案部署到 GitHub 上，請告訴我應該怎麼做」。完成專案 GitHub 規格化準備（建立 <code>.gitignore</code>、開源說明文件 <code>README.md</code>、初始化本地 Git <code>main</code> 分支），並撰寫完整的四步驟 GitHub 部署與免費 GitHub Pages 一鍵上線手冊（記錄於下方第 10 節）。
+          </li>
+          <li>
+            <span class="timestamp">[2026-10-24 09:18 - 09:22]</span>
+            用戶指示「也請幫我增加手動上傳的操作步驟」。於第 10 節增補「GitHub 網頁端免安裝手動拖曳上傳」（免敲終端機指令、瀏覽器可視化上傳）與「GitHub Desktop 官方圖形客戶端」兩種手動上傳手冊，並詳細說明多檔案與 <code>vendor/</code> 資料夾拖曳技巧與 GitHub Pages 啟用流程。
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>3. 執行過程 (Execution Process)</h2>
+        <ul class="task-list">
+          <li><span class="check">✔</span> <div>初始化專案目錄與紀錄架構（<code>PROJECT_LOG.md</code> &amp; <code>PROJECT_LOG.html</code>）。</div></li>
+          <li><span class="check">✔</span> <div>透過 <code>curl.exe</code>（設定 15 秒上限）抓取 <code>https://puma.taipei/heart-island</code> 之 HTTP 回應標頭與 HTML 結構。</div></li>
+          <li><span class="check">✔</span> <div>解析 HTML <code>&lt;base href="/heart-island-assets/"&gt;</code> 與 <code>&lt;script type="importmap"&gt;</code> 模組映射配置。</div></li>
+          <li><span class="check">✔</span> <div>批量下載並逆向分析全站 13 個核心靜態模組檔案（總計約 600 KB）：
+            <ul>
+              <li><code>page.html</code> (11.5 KB)、<code>ui.css</code> (56.2 KB)</li>
+              <li><code>app.js</code> (113.5 KB)、<code>kit.js</code> (6.3 KB)、<code>world.js</code> (27.0 KB)、<code>environment.js</code> (25.3 KB)</li>
+              <li><code>scene-models.js</code> (32.1 KB)、<code>models-extra.js</code>、<code>decor.js</code> (72.9 KB)、<code>people.js</code> (34.0 KB)</li>
+              <li><code>heart-me.js</code> (108.0 KB，社群共創紙娃娃模組)、<code>policies.json</code> (159.0 KB，Schema v3.0 政見資料庫)、<code>icons.js</code>、<code>analytics.js</code></li>
+            </ul>
+          </div></li>
+          <li><span class="check">✔</span> <div>完成完整技術架構分析報告，並同步寫入 <code>PROJECT_LOG.md</code> 與 <code>PROJECT_LOG.html</code>。</div></li>
+          <li><span class="check">✔</span> <div>將分析成果提煉為《3D 互動敘事與資訊視覺化網站設計與技術規格書範本》，產出 <code>WEBSITE_SPEC_TEMPLATE.md</code> 與 <code>WEBSITE_SPEC_TEMPLATE.html</code>，並記錄於下方第 5 節。</div></li>
+          <li><span class="check">✔</span> <div>抓取並分析馬偕醫學大學官網 (<code>https://www.mmu.edu.tw/</code>) 之現行技術架構、資訊階層與無障礙配置，提出「馬偕 3D 互動校園島」精簡重製建議（記錄於下方第 6 節）。</div></li>
+          <li><span class="check">✔</span> <div>透過 <code>/grill-me</code> 與用戶完成 5 大設計決策對齊，產出《馬偕醫學大學 3D 互動校園島精簡重製規格書》（<a href="MMU_REMAKE_SPEC.md">MMU_REMAKE_SPEC.md</a> &amp; <a href="MMU_REMAKE_SPEC.html">MMU_REMAKE_SPEC.html</a>，記錄於下方第 7 節）。</div></li>
+          <li><span class="check">✔</span> <div>完成「馬偕醫學大學 3D 互動校園島」可執行網站原型（<a href="index.html">index.html</a>、<code>mmu-ui.css</code>、<code>mmu-data.js</code>、<code>mmu-app.js</code>、<code>vendor/three-bundle.js</code>），支援本機 <code>file://</code> 直接雙擊開啟零 CORS 錯誤（記錄於下方第 8 節）。</div></li>
+          <li><span class="check">✔</span> <div>落實用戶回饋升級：雙語資料映射修復（消除 <code>[object Object]</code>）、27 座微縮地標擬真精細化、12 座跨島大橋與幹道網絡、三芝茭白筍特色雕塑與水梯田、師生戶外沙發與休憩家具組。</div></li>
+          <li><span class="check">✔</span> <div>完成專案 GitHub 規格化與開源配置（<code>.gitignore</code>、<code>README.md</code>、Git 本地倉庫初始化），並提供 GitHub Pages 免費 CDN 一鍵上線部署手冊（記錄於下方第 10 節）。</div></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>4. 執行成果：<code>puma.taipei/heart-island</code> 網站技術深度分析報告</h2>
+
+        <h3>4.1 網站定位與設計概念</h3>
+        <p>
+          <strong>「HEART 政策島」</strong> 是台北市長參選人沈伯洋（Puma）推出的 3D 互動政見平台。設計致敬經典桌遊《卡坦島 (Catan)》，將台北市輪廓轉化為 <strong>14 個等大六邊形（Hexagonal Grid）政策島</strong>，在島上放置 <strong>94 座政策細項微縮建築模型</strong> 與 <strong>20 條跨政策協作線（Flows）</strong>，並以 <strong>HEART</strong> 五大維度（<strong>H</strong>abitat 空間、<strong>E</strong>mpower 培力、<strong>A</strong>ccompany 陪伴、<strong>R</strong>esilience 韌性、<strong>T</strong>ime 時間）串聯城市治理藍圖。
+        </p>
+
+        <h3>4.2 系統架構圖 (System Architecture)</h3>
+        <div class="arch-box">[Cloudflare CDN] ──► index.html (&lt;base href="/heart-island-assets/"&gt; + &lt;script type="importmap"&gt;)
+  │
+  ├─► 資料與狀態層: policies.json (Schema v3.0, 159KB: 14 島 / 94 建築細項 / 20 協作線 / 78s 導覽劇本)
+  │
+  ├─► 3D 渲染核心: Three.js r160 (WebGLRenderer + PCFSoftShadowMap + ACESFilmicToneMapping)
+  │     ├── kit.js             : 16 種幾何原件 + THREE.InstancedMesh 批次合併引擎 + 防 Z-Fighting 偏移
+  │     ├── scene-models.js    : 100% 純程式碼程序化建模 (94 座政策建築微縮模型，零外部 .glb/.gltf)
+  │     ├── world.js           : 尖頂六角軸座標 (Axial Hex) + CanvasTexture 2D 程序化地面貼圖 + 步道尋路圖
+  │     ├── environment.js     : SimplexNoise 台北盆地山脈 + 自訂 GLSL Shaders (星空穹頂 / 抗鋸齒水波) + 24h 日夜光影
+  │     ├── decor.js           : 海岸景觀、燈塔光束、Bezier 渡輪航線、夜間路燈暖光池 (AdditiveBlending)
+  │     └── people.js          : 14 種 Q 版市民與彩蛋角色 Puma (肥皂箱演講) + Instanced 步態動畫
+  │
+  ├─► 混合介面與互動層: app.js + ui.css (CSS2DRenderer + 響應式 HUD / Bottom Sheet)
+  │     ├── clipLabels()       : 每幀 DOM 標籤碰撞偵測、7 向避障位移、ミニ徽章收合與 8px 遲滯防抖 (Hysteresis)
+  │     ├── WebGLRenderTarget  : 160×160 (4x MSAA) 離屏相機即時拍攝建築與市民大頭貼縮圖 (轉 JPEG DataURL)
+  │     └── Dirty-Flag &amp; A11y  : 按需重繪省電機制、prefers-reduced-motion 支援、鍵盤導覽與 QA 自動化介面
+  │
+  └─► 社群共創擴充層: heart-me.js (原作者 readper 授權收錄之「我的角色」系統)
+        ├── Prototype Hooking  : 攔截 Scene/Camera/EventDispatcher 原型方法以無侵入式接管 3D 場景
+        ├── 逆向路網與分幀尋路 : 從 89 條路線重建連通圖 + Generator Time-Slicing 背景 Raycast 預計算
+        └── 紙娃娃與合照擺拍   : 13 身分 / 9 髮型 / 配件調色盤 (LocalStorage) + 召喚 Puma 雙人羅盤定點擺拍</div>
+
+        <h3>4.3 八大核心技術亮點深度拆解</h3>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4><span class="num-pill">01</span> 原生 ES Modules + Import Map 無打包架構</h4>
+            <p>不依賴 React、Vue 等前端框架，亦未使用 Webpack/Vite 打包混淆，直接透過瀏覽器原生 <code>&lt;script type="importmap"&gt;</code> 載入自託管的 <strong>Three.js r160</strong> 與 11 支模組化 Vanilla JS 檔案。全站無外部 3D 模型檔，核心程式碼與 JSON 僅約 <strong>600 KB</strong>，首屏載入極快。</p>
+          </div>
+
+          <div class="feature-card">
+            <h4><span class="num-pill">02</span> 100% 純程式碼程序化 3D 建模與 InstancedMesh</h4>
+            <p>全場 94 座微縮建築（如市政大樓、圓頂研究館、貓空纜車、A 字木屋、伙房照護站）<strong>完全不載入任何 <code>.gltf</code> / <code>.glb</code> 模型</strong>，而是由 <code>kit.js</code> 定義 16 種基礎幾何體，收集全場景數萬個零件後按幾何種類合併為單一 <code>THREE.InstancedMesh</code> 批次繪製，並透過 <code>polygonOffset</code> 與微米級確定性尺寸抖動消除 Z-Fighting 共面閃爍。</p>
+          </div>
+
+          <div class="feature-card">
+            <h4><span class="num-pill">03</span> 六角軸座標系與 Canvas 2D 程序化材質貼圖</h4>
+            <p><code>world.js</code> 採用尖頂六邊形軸座標 <code>axialToWorld(q, r)</code> 排列出台北市輪廓。地面材質與 3D 建築中文立牌不載入外部圖片，而是使用 HTML5 2D <code>&lt;canvas&gt;</code> 搭配確定性亂數 <code>mulberry(seed)</code> 即時繪製 14 種地面紋理（花崗岩、跑道、農田、軟墊、木棧道等）並轉為 <code>THREE.CanvasTexture</code>。</p>
+          </div>
+
+          <div class="feature-card">
+            <h4><span class="num-pill">04</span> SimplexNoise 台北盆地地形與客製化 GLSL Shaders</h4>
+            <p><code>environment.js</code> 以 <code>SimplexNoise</code> + FBM 結合北側七星山、西側觀音山、東側四獸山、南側貓空梯田等控制點生成環場盆地，並自動壓低鏡頭正前方山勢。內建三大自訂 <code>ShaderMaterial</code>：<strong>星空大氣穹頂 Shader</strong>、<strong><code>fwidth()</code> 導數抗鋸齒水波 Shader</strong>，以及依政見證據等級動態裁切實線/虛線脈衝的 <strong>協作線光管 Shader</strong>。</p>
+          </div>
+
+          <div class="feature-card">
+            <h4><span class="num-pill">05</span> Q 版市民尋路、彩蛋 Puma 與離屏渲染縮圖</h4>
+            <p><code>people.js</code> 建立跨島環狀步道連通圖（Walkway Graph），驅動 14 種市民角色手持道具在政策島間走動交接，並觸發「城市日誌」LIVE 事件。內建彩蛋角色 <strong>Puma（沈伯洋）</strong> 依序巡迴 14 島並站上肥皂箱揮手。點擊建築或小人時，系統透過 <code>160×160</code> (4x MSAA) 的 <code>THREE.WebGLRenderTarget</code> 即時離屏拍攝 3D 特寫並轉為 JPEG DataURL 顯示。</p>
+          </div>
+
+          <div class="feature-card">
+            <h4><span class="num-pill">06</span> CSS2DRenderer 混合排版與智慧防重疊演算法</h4>
+            <p>透過 <code>CSS2DRenderer</code> 將 HTML 標籤錨定於 3D 座標。<code>app.js</code> 內的 <code>clipLabels()</code> 每幀計算所有標籤與 UI 面板的碰撞框：若重疊則自動嘗試 7 向微幅位移 ➔ 縮合為純數字徽章（<code>.mini</code>）➔ 滑出面板邊緣（<code>.slid</code>），並導入 <strong>8px 遲滯緩衝（Hysteresis）</strong> 徹底防止標籤在臨界位置閃爍跳動。</p>
+          </div>
+
+          <div class="feature-card">
+            <h4><span class="num-pill">07</span> 社群共創模組注入：<code>heart-me.js</code> 自訂紙娃娃</h4>
+            <p>收錄自開發者 <code>readper</code> 的開源專案。透過包裝 <code>THREE.Scene/Camera.prototype.updateMatrixWorld</code> 無侵入式攔截場景實例；從 89 條行人路線逆向重建導航路網；並利用 <strong>JS Generator (<code>function* computeFitSpot</code>) 分幀執行上千條 Raycast</strong>。支援高度自訂角色外觀（存於 <code>localStorage</code>）及召喚分身 Puma 雙人羅盤定點合照。</p>
+          </div>
+
+          <div class="feature-card">
+            <h4><span class="num-pill">08</span> 24h 日夜光影、無障礙設計與工程級 QA 介面</h4>
+            <p>支援 00:00–24:00 關鍵影格光影插值、夜間窗戶自發光與路燈地面光池（<code>AdditiveBlending</code>）。根據裝置自動切換畫質與 LOD，並以 <code>dirty</code> 旗標實作按需重繪。完整支援 <code>prefers-reduced-motion</code> 與鍵盤操作，且在 <code>window.heartCity.debug</code> 內建剪影檢查、步道對齊驗證與亮度檢測等自動化 QA 工具。</p>
+          </div>
+        </div>
+
+        <h3>4.4 技術堆疊總覽表 (Tech Stack Summary)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>技術層面</th>
+              <th>採用技術 / 核心方案</th>
+              <th>關鍵實作細節與對應模組</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>前端核心架構</strong></td>
+              <td>Vanilla JS (ES2022+) + Native ESM</td>
+              <td>使用 <code>&lt;script type="importmap"&gt;</code>，零前端框架、無打包器混淆 (<code>app.js</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>3D 渲染引擎</strong></td>
+              <td>Three.js <code>r160</code> (WebGL 2)</td>
+              <td><code>PCFSoftShadowMap</code> 軟陰影、<code>SRGBColorSpace</code>、<code>ACESFilmicToneMapping</code></td>
+            </tr>
+            <tr>
+              <td><strong>3D 模型建構</strong></td>
+              <td>100% 程式碼程序化建模 (Procedural)</td>
+              <td>零外部 3D 檔案，由 16 種幾何原件組合出 94 座微縮建築 (<code>kit.js</code>, <code>scene-models.js</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>繪圖效能優化</strong></td>
+              <td><code>THREE.InstancedMesh</code> + 距離 LOD</td>
+              <td>全場景建築與最多 7,000 棵樹批次實例化渲染；<code>dirty</code> 旗標按需重繪省電 (<code>kit.js</code>, <code>app.js</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>程序化材質貼圖</strong></td>
+              <td>HTML5 <code>CanvasTexture</code> + 確定性亂數</td>
+              <td>使用 2D Canvas 與 <code>mulberry</code> PRNG 即時繪製 14 種地面紋理與 3D 建築中文招牌 (<code>world.js</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>地形與視覺特效</strong></td>
+              <td><code>SimplexNoise</code> + 客製化 GLSL Shaders</td>
+              <td>FBM 生成台北盆地山脈；自訂 Shaders 渲染夜間星空、<code>fwidth</code> 抗鋸齒水波與動態虛線光管 (<code>environment.js</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>2D/3D 混合介面</strong></td>
+              <td><code>CSS2DRenderer</code> + <code>clipLabels()</code></td>
+              <td>DOM 空間標籤每幀碰撞偵測、7 向位移、數字徽章收合與 8px 遲滯防抖 (<code>app.js</code>, <code>ui.css</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>即時縮圖快照</strong></td>
+              <td><code>THREE.WebGLRenderTarget</code></td>
+              <td>160×160 (4x MSAA) 離屏相機即時渲染建築與市民特寫，轉 JPEG DataURL (<code>app.js</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>社群紙娃娃模組</strong></td>
+              <td>Prototype Hooking + Generator 分幀</td>
+              <td>攔截 Three.js 原型接入場景、重建導航圖、分幀 Raycast 預計算與雙人擺拍 (<code>heart-me.js</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>資料與基礎設施</strong></td>
+              <td>JSON Schema v3.0 + Cloudflare + GA4</td>
+              <td><code>policies.json</code> 驅動中英雙語 (<code>?lang=en</code>) 與 78 秒導覽；Cloudflare 防護與 GA4 追蹤 (<code>analytics.js</code>)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>5. 延伸交付成果：未來設計網站之建議規格書範本 (<code>WEBSITE_SPEC_TEMPLATE</code>)</h2>
+        <p>已將 <code>puma.taipei/heart-island</code> 的工程架構與設計模式提煉為通用型《<strong>3D 互動敘事與資訊視覺化網站設計與技術規格書範本 (v1.0)</strong>》，並於專案目錄下產出獨立雙軌檔案：</p>
+        <ul>
+          <li><strong>Markdown 規格書範本：</strong> <a href="WEBSITE_SPEC_TEMPLATE.md">WEBSITE_SPEC_TEMPLATE.md</a></li>
+          <li><strong>HTML 視覺化規格書範本：</strong> <a href="WEBSITE_SPEC_TEMPLATE.html">WEBSITE_SPEC_TEMPLATE.html</a></li>
+        </ul>
+        <h3>規格書七大核心章節摘要</h3>
+        <ol>
+          <li><strong>專案願景與核心設計哲學：</strong>定義「桌遊化微縮世界隱喻」、「關聯性動態流動視覺化」、「零外部 3D 模型之純程式碼程序化生成（Zero-Asset Procedural 3D）」與「3D 視覺／語意化文字雙軌並重」四大原則。</li>
+          <li><strong>系統架構與模組化規範：</strong>規範 Vanilla JS (ES2022+) + Native Import Map + Three.js r160 雙渲染器架構，以及 12 支標準模組檔案（<code>app.js</code>, <code>kit.js</code>, <code>world.js</code>, <code>scene-models.js</code>, <code>environment.js</code>, <code>decor.js</code>, <code>people.js</code>, <code>avatar-mod.js</code>, <code>data.json</code> 等）之職責邊界。</li>
+          <li><strong>3D 場景與程序化視覺規格：</strong>明訂尖頂六角軸座標轉換公式、16 種幾何原件池與 <code>THREE.InstancedMesh</code> 批次合併引擎、防 Z-Fighting 雙重機制（<code>polygonOffset</code> + 確定性微米縮放抖動）、Canvas 2D 程序化地面貼圖與 3D 招牌、SimplexNoise 環場地形（含鏡頭前景自動壓低公式）、三大客製化 GLSL Shaders 與 24 小時 10 關鍵影格光影系統。</li>
+          <li><strong>角色尋路系統與自訂化身規格：</strong>規範環島步道連通圖（Walkway Graph）、Instanced Q 版市民步態與搬運交接動畫、彩蛋代表人物巡迴狀態機，以及基於 Generator Time-Slicing（分幀 Raycast 預計算）的紙娃娃試衣間與 360° 羅盤雙人擺拍系統。</li>
+          <li><strong>2D/3D 混合介面與互動規格：</strong>明訂 <code>clipLabels()</code> 四階段碰撞避障演算法與 <strong>8px 遲滯防抖（Hysteresis）</strong>、<code>160×160</code> (4x MSAA) <code>WebGLRenderTarget</code> 即時離屏快照縮圖、桌面版卡片鏡頭避讓 (<code>flyTo</code>) 與四大探索模式（一日作息、階段推進、核心標籤複選、劇本式自動導覽）。</li>
+          <li><strong>核心資料結構規格範本 (<code>data.json</code> Schema v3.0)：</strong>提供完整 JSON 欄位範本（<code>meta</code>, <code>sources</code>, <code>islands</code>, <code>buildings</code>, <code>flows</code>, <code>quotes</code>, <code>dayCycle</code>, <code>termTimeline</code>, <code>tour</code>），支援中英雙語與證據等級標記。</li>
+          <li><strong>效能預算、無障礙設計與 QA 驗收規範：</strong>明訂首屏未壓縮 <code>&lt; 800 KB</code>、Draw Calls <code>&lt;= 35</code>、High/Medium/Low 自適應畫質與 <code>dirty</code> 旗標按需重繪、WCAG 2.1 AA（<code>prefers-reduced-motion</code> 與全鍵盤操作）以及 URL QA 除錯參數（<code>?debug=silhouette</code>, <code>?debug=occupancy</code>, <code>?ratio=9x16</code>, <code>flowRouteCheck()</code>）。</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>6. 馬偕醫學大學 (<code>https://www.mmu.edu.tw/</code>) 現況分析與精簡重製建議</h2>
+        <h3>6.1 現有網站技術與資訊架構診斷</h3>
+        <ul>
+          <li><strong>現行技術堆疊：</strong>ASP.NET MVC 後端 + <code>xmdoc</code> CMS，前端為傳統多頁式（MPA）架構，採用 <code>jQuery 3.7.1</code>、<code>Swiper</code>（首頁大圖輪播）、<code>Owl Carousel 2</code>（焦點消息輪播）、<code>Superfish</code>（下拉選單）與 <code>jQuery.mmenu</code>（手機側欄），並通過數位發展部 <strong>AA 等級無障礙網頁檢測</strong>。</li>
+          <li><strong>現行核心內容：</strong>
+            <ul>
+              <li><strong>3 大學院 + 1 中心（共 9 個教學單位）：</strong>醫學院（醫學系、醫檢暨再生醫學系、視光學系、生醫所）、護理學院（護理學系）、厚生健康學院（聽語系、長照所、高齡福祉科技所）與全人教育中心。</li>
+              <li><strong>校園簡介與馬偕精神：</strong>校長與學校簡介、治校理念、馬偕精神（摩西的故事、馬偕的故事、馬偕紀念醫院的故事、我們的故事）。</li>
+              <li><strong>行政處室（13 個單位）與常用連結：</strong>招生資訊網、新生專區、Open Day、校園導覽圖（目前僅為靜態 JPG 列表）、家庭式優質宿舍、交通接駁車、USR 推動辦公室、SDGs 永續發展、馬偕紀念醫院醫療體系。</li>
+            </ul>
+          </li>
+          <li><strong>現有痛點與重製契機：</strong>首頁區塊以傳統輪播與 20 多個方塊按鈕呈現，較難在第一時間向高中生、家長與訪客展現 <strong>「三芝依山面海的優美立體校園」</strong> 以及 <strong>「三大院系 × 馬偕醫院臨床實習 × 偏鄉 USR 衛教服務的跨域連結」</strong>。</li>
+        </ul>
+
+        <h3>6.2 「馬偕互動校園島 (MMU Interactive Campus Island)」精簡重製建議</h3>
+        <ul>
+          <li><strong>地理特色完美契合：</strong>三芝校區「背靠大屯山系、面向台灣海峽與夕陽」的地貌，天然對應程序化背山面海地形與日夜夕陽系統。</li>
+          <li><strong>規模精簡為 6 座核心六邊形島嶼（約 20 座微縮地標，複雜度降至原版 1/4）：</strong>
+            <ol>
+              <li><strong>醫學院島：</strong>醫學系、醫檢暨再生醫學系、視光學系、生物醫學研究所。</li>
+              <li><strong>護理學院島：</strong>護理學系、高擬真臨床技能中心。</li>
+              <li><strong>厚生健康學院島：</strong>聽語系、長照所、高齡福祉科技所（含老化感官實驗室）。</li>
+              <li><strong>全人與馬偕精神島：</strong>全人教育中心、馬偕博士歷史故事館／禮拜堂、數位校史館。</li>
+              <li><strong>校園生活與行政島：</strong>家庭式優質宿舍、圖書館、活動中心、交通接駁站、行政服務中心。</li>
+              <li><strong>招生與國際跨域島：</strong>招生專區／Open Day、台蒙／台美海外實習、馬偕醫院臨床連結、偏鄉 USR 衛教營。</li>
+            </ol>
+          </li>
+          <li><strong>功能取捨建議：</strong>保留 3D 六角島、背山面海夕陽切換、跨島協作光管、Q 版師生與<strong>彩蛋角色「馬偕博士 (Dr. MacKay)」</strong>以及右側 AA 無障礙語意化搜尋欄；捨棄複雜的 <code>heart-me.js</code> 紙娃娃試衣間、任期時間軸與城市日誌 LIVE 流，改為簡潔的「校園焦點新聞 &amp; 招生快速入口」面板。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>7. <code>/grill-me</code> 需求對齊決策與專屬重製規格書 (<code>MMU_REMAKE_SPEC</code>)</h2>
+        <p>透過 <code>/grill-me</code> 互動訪談，與用戶完成五大設計分支決策對齊：</p>
+        <table>
+          <thead>
+            <tr>
+              <th>決策維度</th>
+              <th>用戶選定方案</th>
+              <th>設計與架構落實細節</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Q1. 網站定位與島嶼規模</strong></td>
+              <td><strong>7 座六角島完整校務入口版</strong></td>
+              <td>涵蓋 <code>01 醫學院島</code>、<code>02 護理學院島</code>、<code>03 厚生健康學院島</code>、<code>04 全人與馬偕精神島</code>、<code>05 山海生活與宿舍島</code>、<code>06 行政與數位校務島</code>、<code>07 招生、醫療體系與國際 USR 島</code>，共 <strong>27 座程序化微縮建築地標</strong>。</td>
+            </tr>
+            <tr>
+              <td><strong>Q2. 3D 動態視覺特色</strong></td>
+              <td><strong>完整動態體驗（山海夕陽 + 跨島協作線 + 馬偕博士彩蛋）</strong></td>
+              <td>保留北側大屯山系、南側台灣海峽波浪、6 條跨島跨域協作光管與 Q 版師生，並設計身穿黑色禮服、蓄大鬍子、頭戴禮帽、手提醫療袋的 <strong>「馬偕博士 (Dr. MacKay)」彩蛋角色</strong> 巡迴 7 島；移除高複雜度紙娃娃試衣間與城市日誌。</td>
+            </tr>
+            <tr>
+              <td><strong>Q3. 頂部與底部控制列</strong></td>
+              <td><strong>頂部四時段光影按鈕 ＋ 底部 4 大訪客身分快速切換</strong></td>
+              <td>頂部提供 <code>🌅 清晨</code>、<code>☀️ 白天</code>、<code>🌇 三芝夕陽</code>、<code>🌙 星空</code> 一鍵光影切換與 <code>🎩 尋找馬偕博士</code> 按鈕；底部提供 <code>00 全校總覽</code>、<code>01 考生與家長</code>、<code>02 在校學生</code>、<code>03 教職員與校友</code> 身分切換，點擊時 3D 對應島嶼外框自動發光高亮並展開專屬快速入口膠囊列。</td>
+            </tr>
+            <tr>
+              <td><strong>Q4. 資訊呈現與首屏版面</strong></td>
+              <td><strong>全螢幕 3D 校園島 ＋ 右側三頁籤整合面板 ＋ 頂部焦點膠囊</strong></td>
+              <td>全視窗 <code>100dvh</code> 3D 畫布；左上角配置即時校務焦點輪播膠囊（如 11/7 Open Day、116 學年度招生、醫檢師國考榜首）；右側面板整合 <strong>3 大頁籤</strong>：<code>🏝️ 校園島嶼 (27)</code>、<code>📰 最新消息</code>、<code>⚡ 常用系統與處室</code>。</td>
+            </tr>
+            <tr>
+              <td><strong>Q5. 最終交付成果形式</strong></td>
+              <td><strong>同時產出「專屬重製規格書」與「可直接執行的 3D 互動網站原型」</strong></td>
+              <td>產出雙格式專屬規格書（<code>MMU_REMAKE_SPEC.md</code> &amp; <code>MMU_REMAKE_SPEC.html</code>）以及零外部 3D 模型、支援 <code>file://</code> 直接雙擊開啟的完整互動網站原型。</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>專屬重製規格書交付清單</h3>
+        <ul>
+          <li><strong>Markdown 版：</strong> <a href="MMU_REMAKE_SPEC.md">MMU_REMAKE_SPEC.md</a></li>
+          <li><strong>HTML 視覺化版：</strong> <a href="MMU_REMAKE_SPEC.html">MMU_REMAKE_SPEC.html</a></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>8. 最終交付成果：馬偕醫學大學 3D 互動校園島可執行網站原型</h2>
+        <p>已於專案資料夾 <code>c:\Google\Antigravity\Island\</code> 建置完成可直接雙擊開啟（支援 <code>file://</code> 協定零 CORS 錯誤，亦支援任何靜態 HTTP 伺服器部署）的完整 3D 互動校園島原型：</p>
+        <ul>
+          <li><strong><a href="index.html">index.html</a>：</strong>語意化 HTML5 主入口，包含無障礙跳轉連結（Skip Link）、左上角品牌與即時焦點輪播膠囊、右上角四時段光影與馬偕博士彩蛋 HUD、右側三頁籤資訊中心（島嶼導覽／最新消息／常用系統與處室）、左下角建築詳情浮動卡、底部 4 大訪客身分切換列與導覽說明彈窗。</li>
+          <li><strong><a href="mmu-ui.css">mmu-ui.css</a>：</strong>毛玻璃（Glassmorphism）深色海灣主題樣式表、RWD 響應式平板與手機底部抽屜（Bottom Sheet）佈局、3D CSS2D 錨定標籤樣式與 WCAG 2.1 AA 焦點外框設計。</li>
+          <li><strong><a href="mmu-data.js">mmu-data.js</a>：</strong>馬偕醫學大學完整結構化資料庫（<code>window.MMU_DATA</code>），內含 7 座六角島軸座標、27 座微縮建築地標（含對象、簡介、3 點精要事實、跨島協作流向與官網深層連結）、6 條跨島跨域協作光管、4 大訪客身分、12 則真實校園新聞公告、10 大行政處室分機表與 20 個數位校務系統入口。</li>
+          <li><strong><a href="mmu-app.js">mmu-app.js</a>：</strong>Three.js 3D 互動引擎主程式，實作 <code>createKit()</code> 批次實例化渲染、<code>buildBuildingModel()</code> 27 座馬偕特色微縮地標純程式碼建模、<code>createEnvironment()</code> 三芝大屯山海與四時段光影系統、<code>createPeople()</code> Q 版師生與<strong>「馬偕博士 (Dr. MacKay)」彩蛋角色</strong>自動巡迴、<code>generateBuildingThumbnails()</code> 即時 3D 頭像離屏拍攝與 <code>clipLabels()</code> 8px 遲滯防抖標籤避障。</li>
+          <li><strong><a href="vendor/three-bundle.js">vendor/three-bundle.js</a>：</strong>自包含封裝之 Three.js <code>r160</code> 核心與 <code>OrbitControls</code>、<code>CSS2DRenderer</code>、<code>RoundedBoxGeometry</code>（1.31 MB），確保本機直接以 <code>file://</code> 雙擊 <code>index.html</code> 時無須網路或本機 Server 即可 100% 正常運行。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>9. 階段存檔檢核點與明日續看快速指南 (Session Checkpoint — 2026-10-23 23:13)</h2>
+        <h3>9.1 明日開啟與體驗順序建議</h3>
+        <ol>
+          <li>
+            <strong>直接體驗 3D 互動校園島原型：</strong>直接雙擊開啟 <a href="index.html">index.html</a>。
+            <ul>
+              <li>點擊右上角 <code>🌅 清晨 / ☀️ 白天 / 🌇 三芝夕陽 / 🌙 星空</code> 體驗三芝山海四時段光影與夜間窗戶亮燈變化。</li>
+              <li>點擊右上角 <code>🎩 尋找馬偕博士</code>，跟隨鏡頭飛往巡迴 7 島的馬偕博士彩蛋角色，閱讀「寧願燒盡，不願銹壞」故事卡。</li>
+              <li>點擊底部 <code>01 考生與家長 / 02 在校學生 / 03 教職員與校友</code>，查看對應 3D 島嶼發光高亮與專屬入口連結。</li>
+              <li>切換右側面板三大頁籤（<code>🏝️ 校園島嶼 (27)</code>、<code>📰 最新消息</code>、<code>⚡ 常用系統與處室</code>），或點擊任一微縮建築查看跨島協作流向。</li>
+            </ul>
+          </li>
+          <li>
+            <strong>檢視規格書與紀錄文件（皆提供 <code>.html</code> 瀏覽器直接閱讀版與 <code>.md</code> 原始碼版）：</strong>
+            <ul>
+              <li>專案全程紀錄：<a href="PROJECT_LOG.html">PROJECT_LOG.html</a>（或 <a href="PROJECT_LOG.md">PROJECT_LOG.md</a>）</li>
+              <li>馬偕醫學大學專屬精簡重製規格書：<a href="MMU_REMAKE_SPEC.html">MMU_REMAKE_SPEC.html</a>（或 <a href="MMU_REMAKE_SPEC.md">MMU_REMAKE_SPEC.md</a>）</li>
+              <li>通用型 3D 互動網站設計規格書範本：<a href="WEBSITE_SPEC_TEMPLATE.html">WEBSITE_SPEC_TEMPLATE.html</a>（或 <a href="WEBSITE_SPEC_TEMPLATE.md">WEBSITE_SPEC_TEMPLATE.md</a>）</li>
+            </ul>
+          </li>
+        </ol>
+        <h3>9.2 明日可接續討論或微調之方向</h3>
+        <ul>
+          <li><strong>視覺與 3D 模型微調：</strong>調整特定建物外觀細節（如馬偕紀念禮拜堂、活動中心、家族式宿舍配色或尺寸）、島嶼間距或三芝山海地形角度。</li>
+          <li><strong>資料與公告串接：</strong>調整 27 座地標之文案介紹、新增院系實驗室地標，或規劃與學校現有 ASP.NET MVC (<code>xmdoc</code>) 後台之最新消息自動串接。</li>
+          <li><strong>自動導覽劇本（Guided Tour）：</strong>為「Open Day 開放日」或「高中生招生簡報」加入一鍵 60 秒自動運鏡導覽模式。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>10. GitHub 專案部署與 GitHub Pages 託管完整指南 (GitHub Deployment Guide)</h2>
+        <p>本專案採用 <strong>零外部 3D 模型、零打包器構建（Zero-Build Static Architecture）</strong>，所有靜態資產均使用相對路徑（<code>./</code>），天生 100% 完美相容 GitHub 與 GitHub Pages 免費 CDN 靜態網站託管。</p>
+
+        <h3>10.1 部署前環境已完成之準備工作</h3>
+        <ul class="task-list">
+          <li><span class="check">✔</span> <div>已在專案根目錄建立標準 <a href=".gitignore">.gitignore</a>。</div></li>
+          <li><span class="check">✔</span> <div>已建立結構完整的開源說明文件 <a href="README.md">README.md</a>。</div></li>
+          <li><span class="check">✔</span> <div>已初始化本地 Git 主分支 <code>main</code>（<code>git init -b main</code>）並將全站檔案加入暫存區（Stage）。</div></li>
+        </ul>
+
+        <h3>10.2 方式一：終端機命令列推送（推薦熟悉指令者，約 1 分鐘）</h3>
+
+        <h4>【步驟 1】在終端機設定您的 Git 身分（若尚未設定過）</h4>
+        <p>若您的本機電腦尚未設定過 Git 提交身分，請在 PowerShell 執行：</p>
+        <pre><code>git config user.name "您的GitHub使用者名稱"
+git config user.email "您的GitHub註冊Email"</code></pre>
+
+        <h4>【步驟 2】建立本地首次 Commit 提交</h4>
+        <pre><code>git commit -m "feat: complete Mackay Medical University 3D campus island v2.1"</code></pre>
+
+        <h4>【步驟 3】前往 GitHub 建立遠端儲存庫並推送代碼</h4>
+        <ol>
+          <li>開啟瀏覽器登入 <a href="https://github.com/" target="_blank" rel="noopener">GitHub.com</a>，點擊右上角 <strong><code>+</code> ➔ New repository</strong>。</li>
+          <li>填寫儲存庫資訊：
+            <ul>
+              <li><strong>Repository name</strong>：例如 <code>mmu-island</code> 或 <code>mmu-3d-campus</code></li>
+              <li><strong>Visibility</strong>：選擇 <strong>Public</strong>（若使用免費版 GitHub Pages 需設為 Public）</li>
+              <li><strong>重要</strong>：請<strong>不要</strong>勾選 "Add a README file"、".gitignore" 或 "license"（因為本地已準備完整檔案）。</li>
+            </ul>
+          </li>
+          <li>點擊 <strong>Create repository</strong>。</li>
+          <li>複製 GitHub 頁面上顯示的遠端指令，在專案目錄下執行（將網址替換為您的實際網址）：
+            <pre><code>git remote add origin https://github.com/&lt;您的GitHub帳號&gt;/&lt;儲存庫名稱&gt;.git
+git branch -M main
+git push -u origin main</code></pre>
+          </li>
+        </ol>
+
+        <h3>10.3 方式二：GitHub 網頁端免安裝手動拖曳上傳（推薦不想敲指令者，全圖形化操作）</h3>
+        <p>如果您不想打開命令提示字元或終端機，可以直接使用瀏覽器透過 GitHub 網頁介面上傳所有檔案：</p>
+
+        <h4>【步驟 1】在 GitHub 建立一個帶有初始檔案的新儲存庫</h4>
+        <ol>
+          <li>開啟瀏覽器登入 <a href="https://github.com/" target="_blank" rel="noopener">GitHub.com</a>，點擊右上角 <strong><code>+</code> ➔ New repository</strong>。</li>
+          <li>填寫儲存庫資訊：
+            <ul>
+              <li><strong>Repository name</strong>：輸入例如 <code>mmu-island</code></li>
+              <li><strong>Visibility</strong>：選擇 <strong>Public</strong></li>
+              <li><strong>關鍵步驟</strong>：請在下方勾選 <strong>「Add a README file」</strong>（這會讓 GitHub 自動建立一個初始頁面，並解鎖網頁上的檔案上傳按鈕）。</li>
+            </ul>
+          </li>
+          <li>點擊綠色按鈕 <strong>Create repository</strong>。</li>
+        </ol>
+
+        <h4>【步驟 2】在網頁點擊上傳檔案功能</h4>
+        <ol>
+          <li>進入新建好的儲存庫頁面後，點擊右上方綠色按鈕旁邊的 <strong>「Add file」</strong> ➔ 選擇 <strong>「Upload files」</strong>。</li>
+          <li>頁面中央會出現大虛線框：<strong>「Drag files here to add them to your repository」</strong>。</li>
+        </ol>
+
+        <h4>【步驟 3】從本機檔案總管拖曳檔案上傳</h4>
+        <ol>
+          <li>打開 Windows 檔案總管，進入本專案資料夾：<code>c:\Google\Antigravity\Island\</code></li>
+          <li>選取所有需要上傳的檔案與資料夾：
+            <ul>
+              <li><code>index.html</code>（首頁核心檔案）</li>
+              <li><code>mmu-ui.css</code>（樣式表）</li>
+              <li><code>mmu-data.js</code>（資料庫）</li>
+              <li><code>mmu-app.js</code>（3D 引擎）</li>
+              <li><code>vendor/</code> 資料夾（<strong>重要</strong>：整包 <code>vendor</code> 資料夾直接拖進去，內含 <code>three-bundle.js</code>）</li>
+              <li><code>PROJECT_LOG.md</code> 與 <code>PROJECT_LOG.html</code>（專案紀錄）</li>
+              <li><code>MMU_REMAKE_SPEC.md</code> 與 <code>MMU_REMAKE_SPEC.html</code>（規格書）</li>
+              <li><code>WEBSITE_SPEC_TEMPLATE.md</code> 與 <code>WEBSITE_SPEC_TEMPLATE.html</code>（規格書範本）</li>
+              <li><code>README.md</code>（可直接覆蓋 GitHub 自動生成的 README）</li>
+            </ul>
+          </li>
+          <li>按住滑鼠左鍵，將上述選取的檔案與資料夾<strong>直接拖曳到 GitHub 瀏覽器視窗的虛線框內放開</strong>。</li>
+          <li>瀏覽器會顯示各檔案的上傳進度條，稍等 10～20 秒直到全部上傳完成。
+            <blockquote>現代瀏覽器（Chrome、Edge 等）完全支援直接拖曳整個 <code>vendor</code> 資料夾，GitHub 網頁會自動建立 <code>vendor/</code> 目錄並放入 <code>three-bundle.js</code> 等模組。</blockquote>
+          </li>
+        </ol>
+
+        <h4>【步驟 4】提交變更存檔（Commit changes）</h4>
+        <ol>
+          <li>在網頁下方「Commit changes」區塊：
+            <ul>
+              <li>在標題欄輸入：<code>feat: upload MMU 3D campus island files</code></li>
+              <li>選擇預設的 <strong>Commit directly to the <code>main</code> branch</strong>。</li>
+            </ul>
+          </li>
+          <li>點擊綠色大按鈕 <strong>Commit changes</strong>。</li>
+          <li>稍等數秒處理，頁面即會刷新，顯示您剛剛上傳的所有檔案清單！</li>
+        </ol>
+
+        <h3>10.4 方式三：使用 GitHub Desktop 官方圖形客戶端（適合習慣桌面軟體者）</h3>
+        <ol>
+          <li>下載並安裝官方免費工具 <a href="https://desktop.github.com/" target="_blank" rel="noopener">GitHub Desktop</a> 並登入您的帳號。</li>
+          <li>點選功能表 <strong>File ➔ Add Local Repository</strong>，選擇資料夾 <code>c:\Google\Antigravity\Island\</code>。</li>
+          <li>軟體會自動偵測全站所有已修改與新建立的檔案。</li>
+          <li>點擊視窗上方藍色按鈕 <strong>Publish repository</strong>（確認不勾選 Keep this code private，保持公開），點擊 Publish 即可一鍵同步到 GitHub！</li>
+        </ol>
+
+        <h3>10.5 啟用 GitHub Pages 免費 CDN 一鍵上線（獲得專屬公開網址）</h3>
+        <p>無論您是透過「方式一（指令）」、「方式二（網頁拖曳）」或「方式三（Desktop）」將檔案上傳到 GitHub，最後一步都是開啟 GitHub Pages 讓它變成線上網站：</p>
+        <ol>
+          <li>在您的 GitHub 儲存庫頁面上方，點擊 <strong>Settings</strong>（齒輪分頁）。</li>
+          <li>在左側欄位找到並點選 <strong>Pages</strong>（位於 Code and automation 區塊內）。</li>
+          <li>在 <strong>Build and deployment</strong> 區塊：
+            <ul>
+              <li><strong>Source</strong>：保持預設 <code>Deploy from a branch</code>。</li>
+              <li><strong>Branch</strong>：下拉選單切換為 <strong><code>main</code></strong>，後方目錄選 <strong><code>/(root)</code></strong>。</li>
+              <li>點擊右側的 <strong>Save</strong> 按鈕。</li>
+            </ul>
+          </li>
+          <li>約等待 60～90 秒，重新整理此 Pages 頁面，上方將出現綠色標記與專屬公開網址：
+            <pre><code>https://&lt;您的GitHub帳號&gt;.github.io/&lt;儲存庫名稱&gt;/</code></pre>
+          </li>
+          <li>點擊該網址，即可在任何手機、平板或電腦上立即暢遊馬偕醫學大學 3D 互動校園島！</li>
+        </ol>
+
+        <h3>10.6 部署常見問題與排查技巧 (FAQ)</h3>
+        <ul>
+          <li><strong>Q1：網頁開啟後 3D 畫面出不來或一片黑？</strong><br>請檢查根目錄是否有 <code>vendor/three-bundle.js</code>。若使用網頁拖曳上傳，請務必確認 <code>vendor</code> 資料夾有成功上傳（不能只有把 <code>three-bundle.js</code> 丟在根目錄，必須在 <code>vendor/</code> 子目錄內）。</li>
+          <li><strong>Q2：GitHub Pages 出現 404 Not Found？</strong><br>GitHub Pages 部署通常需要 1 到 2 分鐘排程發布。如果剛按下 Save，請稍等約 60 秒後再重新整理，看到「Your site is live at...」的綠色勾勾提示後再開啟。</li>
+          <li><strong>Q3：未來如果要更新島上的建築或最新消息怎麼辦？</strong><br><strong>指令方式</strong>：本地修改 <code>mmu-data.js</code> 或 <code>mmu-app.js</code> 後，執行 <code>git commit -am "update"</code> 與 <code>git push</code>。<br><strong>網頁方式</strong>：直接在 GitHub 網頁上找到 <code>mmu-data.js</code>，點擊右上角鉛筆圖示（Edit this file）直接修改文字或新聞，按下 Commit changes，GitHub Pages 就會在 1 分鐘內自動更新全網！</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      持續同步更新中 · Antigravity Pair Programming
+    </footer>
+  </div>
+</body>
+</html>

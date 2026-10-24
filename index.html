@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>馬偕醫學大學 3D 互動校園島｜Mackay Medical University 3D Campus Island</title>
+  <meta name="description" content="馬偕醫學大學（MMU）3D 互動校園導覽入口網站。串聯醫學院、護理學院、厚生健康學院、全人馬偕精神、山海宿舍生活、行政校務與馬偕醫療體系七大主題島嶼與 27 座地標。" />
+  <meta property="og:title" content="馬偕醫學大學 3D 互動校園島｜Mackay Medical University" />
+  <meta property="og:description" content="寧願燒盡，不願銹壞 — 探索三芝依山傍海的馬偕醫學大學 7 大主題島嶼與 27 座互動校園地標。" />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="./mmu-ui.css" />
+</head>
+<body>
+  <!-- 無障礙跳轉連結 (WCAG 2.1 AA) -->
+  <a href="#sidebar" class="skip-link">跳至校園導覽與公告目錄 (Skip to Campus Directory)</a>
+
+  <!-- 3D 互動畫布與 CSS2D 雙層標籤容器 -->
+  <div id="stage" aria-label="馬偕醫學大學 3D 互動校園島畫布"></div>
+  <div id="labels" aria-hidden="true"></div>
+  <div id="vignette" aria-hidden="true"></div>
+
+  <!-- 左上角品牌識別與即時焦點輪播膠囊 -->
+  <header id="top-left-stack">
+    <div id="brand">
+      <div class="brand-crest" aria-hidden="true">🔥</div>
+      <div class="brand-titles">
+        <div class="brand-title-row">
+          <h1 class="brand-title">馬偕醫學大學</h1>
+          <span class="brand-badge">3D 校園島</span>
+        </div>
+        <div class="brand-sub">Mackay Medical University · 寧願燒盡，不願銹壞</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:6px;">
+      <a id="ticker-pill" href="https://www.mmu.edu.tw/" target="_blank" rel="noopener" title="點擊查看官網完整公告">
+        <span id="ticker-tag" class="ticker-tag">焦點</span>
+        <span id="ticker-text" class="ticker-text">載入最新校務焦點中...</span>
+      </a>
+      <button id="ticker-next" class="ticker-next-btn" type="button" title="切換下一則焦點" aria-label="下一則焦點">▸</button>
+    </div>
+  </header>
+
+  <!-- 右上角 HUD 控制列：四時段光影切換 + 馬偕博士彩蛋 + 全景/語言/說明 -->
+  <nav id="hud-top" aria-label="場景光影與視角控制">
+    <div class="hud-group" role="group" aria-label="三芝山海四時段光影切換">
+      <button type="button" class="hud-btn" data-time="dawn" title="大屯山晨曦 (06:30)">🌅 清晨</button>
+      <button type="button" class="hud-btn active" data-time="day" title="三芝晴朗白天 (12:00)">☀️ 白天</button>
+      <button type="button" class="hud-btn" data-time="dusk" title="三芝海景夕陽 (17:45)">🌇 三芝夕陽</button>
+      <button type="button" class="hud-btn" data-time="night" title="北海岸星空與校園燈火 (21:00)">🌙 星空</button>
+    </div>
+
+    <div class="hud-group" role="group" aria-label="快速導覽與彩蛋">
+      <button type="button" id="btn-mackay" class="hud-btn mackay-btn" title="尋找在校園巡禮的馬偕博士彩蛋角色">🎩 尋找馬偕博士</button>
+      <button type="button" id="btn-overview" class="hud-btn" title="回到全校 7 島鳥瞰視角">🗺️ 全景</button>
+      <button type="button" id="btn-lang" class="hud-btn" title="中英文雙語切換">EN / 中文</button>
+      <button type="button" id="btn-help" class="hud-btn" title="操作說明與規格架構" aria-label="操作說明">❓</button>
+    </div>
+  </nav>
+
+  <!-- 側欄收合時的展開按鈕 -->
+  <button id="sidebar-toggle" type="button" title="展開校園資訊面板" aria-label="展開校園資訊面板">☰</button>
+
+  <!-- 右側三頁籤整合資訊面板 (#sidebar) -->
+  <aside id="sidebar" aria-label="馬偕醫學大學校園導覽與校務資訊">
+    <div class="sidebar-header">
+      <div class="sidebar-title-row">
+        <div class="sidebar-title">
+          <span>🧭 校園資訊中心</span>
+          <a href="./MMU_REMAKE_SPEC.html" target="_blank" style="font-size:11px;color:var(--mmu-gold);text-decoration:none;font-weight:600;">[查看重製規格書 ↗]</a>
+        </div>
+        <button id="sidebar-collapse" class="sidebar-collapse-btn" type="button" title="收合側邊面板">收合 ▸</button>
+      </div>
+
+      <div class="sidebar-tabs" role="tablist" aria-label="資訊分類頁籤">
+        <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="islands">🏝️ 校園島嶼 (27)</button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="news">📰 最新消息</button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="systems">⚡ 常用系統與處室</button>
+      </div>
+    </div>
+
+    <!-- 頁籤 1：校園島嶼與 27 座建築導覽 -->
+    <section id="panel-islands" class="tab-panel" role="tabpanel">
+      <div class="filter-bar">
+        <div class="search-box">
+          <input id="building-search" type="search" placeholder="搜尋系所、中心、宿舍、禮拜堂或代碼 (如 M01)..." aria-label="搜尋校園建築或系所" />
+          <button id="search-clear" class="search-clear" type="button" title="清除搜尋" aria-label="清除搜尋">✕</button>
+        </div>
+        <div id="island-chips" class="island-chips" role="group" aria-label="七大島嶼篩選"></div>
+      </div>
+      <div id="buildings-list" class="panel-scroll"></div>
+    </section>
+
+    <!-- 頁籤 2：最新消息與焦點公告 -->
+    <section id="panel-news" class="tab-panel" role="tabpanel" hidden>
+      <div class="filter-bar">
+        <div id="news-chips" class="island-chips" role="group" aria-label="公告類別篩選"></div>
+      </div>
+      <div id="news-list" class="panel-scroll"></div>
+    </section>
+
+    <!-- 頁籤 3：常用系統入口與行政處室分機 -->
+    <section id="panel-systems" class="tab-panel" role="tabpanel" hidden>
+      <div id="systems-list" class="panel-scroll"></div>
+    </section>
+  </aside>
+
+  <!-- 左下角建築詳情浮動卡片 (#detail) -->
+  <article id="detail" aria-live="polite" hidden>
+    <div class="detail-top">
+      <div id="detail-preview" aria-hidden="true"></div>
+      <div class="detail-headings">
+        <div class="detail-badge-row">
+          <span id="detail-island-badge" class="detail-island-badge">01 醫學院島</span>
+          <span id="detail-code" class="detail-code">#M01</span>
+        </div>
+        <h2 id="detail-title" class="detail-title">醫學系暨大體解剖中心</h2>
+        <div id="detail-who" class="detail-who">馬偕醫學院 · 醫學系</div>
+      </div>
+      <button id="detail-close" class="detail-close" type="button" title="關閉詳情卡片 (Esc)" aria-label="關閉詳情">✕</button>
+    </div>
+
+    <div class="detail-body">
+      <p id="detail-plain" class="detail-plain"></p>
+      <ul id="detail-facts" class="detail-facts"></ul>
+      <div id="detail-flows" class="detail-flows"></div>
+    </div>
+
+    <div class="detail-footer">
+      <div class="detail-nav-btns">
+        <button id="detail-prev" class="detail-nav-btn" type="button" title="上一座地標 (←)">◀ 上一地標</button>
+        <button id="detail-next" class="detail-nav-btn" type="button" title="下一座地標 (→)">下一地標 ▶</button>
+      </div>
+      <a id="detail-official-link" class="detail-official-link" href="https://www.mmu.edu.tw/" target="_blank" rel="noopener">前往官網專頁 ↗</a>
+    </div>
+  </article>
+
+  <!-- 底部訪客身分導覽列 (#bottom-dock) -->
+  <div id="bottom-dock">
+    <div id="persona-links" hidden></div>
+    <nav id="persona-bar" aria-label="訪客身分快速切換"></nav>
+  </div>
+
+  <!-- 互動操作說明彈窗 (#help-modal) -->
+  <div id="help-modal" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
+    <div class="help-dialog">
+      <h2 id="help-title">🏝️ 馬偕醫學大學 3D 互動校園島 — 導覽指南</h2>
+      <p class="help-lead">
+        本網站參考 <strong>HEART 政策島</strong> 之輕量化 Three.js 程序化建模架構，為<strong>馬偕醫學大學（MMU）</strong>量身打造「三芝依山傍海」的 7 大主題島嶼與 27 座校園地標。
+      </p>
+      <div class="help-grid">
+        <div class="help-item">
+          <strong>🖱️ 3D 視角旋轉與縮放</strong>
+          <span>滑鼠左鍵拖曳旋轉、右鍵平移、滾輪縮放；手機支援單指旋轉與雙指縮放。</span>
+        </div>
+        <div class="help-item">
+          <strong>🏛️ 點擊 27 座微縮地標</strong>
+          <span>點擊島上任一建築、標籤或右側清單，鏡頭會平滑飛往該地標並展開詳細介紹與跨島協作流向。</span>
+        </div>
+        <div class="help-item">
+          <strong>👥 底部 4 大訪客身分切換</strong>
+          <span>切換「考生與家長」、「在校學生」、「教職員與校友」，3D 島嶼會自動高亮發光並浮現專屬入口連結。</span>
+        </div>
+        <div class="help-item">
+          <strong>🌇 三芝四時段光影與馬偕博士彩蛋</strong>
+          <span>右上角可切換「清晨 / 白天 / 三芝夕陽 / 星空」，還能點擊「🎩 尋找馬偕博士」跟隨馬偕博士巡禮校園！</span>
+        </div>
+      </div>
+      <button id="help-close" class="help-close-btn" type="button">開始探索馬偕 3D 校園島</button>
+    </div>
+  </div>
+
+  <!-- 載入本地打包 Three.js (支援 file:// 直接雙擊開啟零 CORS 錯誤) 與校園資料及主程式 -->
+  <script src="./vendor/three-bundle.js"></script>
+  <script src="./mmu-data.js"></script>
+  <script src="./mmu-app.js"></script>
+</body>
+</html>
